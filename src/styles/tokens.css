@@ -1,0 +1,35 @@
+:root {
+  color-scheme: light;
+
+  --color-canvas: #f1eee5;
+  --color-canvas-deep: #e5e1d6;
+  --color-surface: #fffcf4;
+  --color-ink: #191b18;
+  --color-ink-soft: #30342f;
+  --color-muted: #60645e;
+  --color-rule: #c9c6bc;
+  --color-rule-dark: #8a8d86;
+  --color-action: #f15a24;
+  --color-action-dark: #bd3a12;
+  --color-positive: #26734d;
+  --color-warning: #9a6100;
+  --color-critical: #a9362c;
+  --color-focus: #005fcc;
+
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-body: 'IBM Plex Sans', sans-serif;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  --radius-sm: 2px;
+  --radius-md: 5px;
+  --content-width: 80rem;
+  --shadow-lifted: 0 18px 50px rgb(25 27 24 / 10%);
+}

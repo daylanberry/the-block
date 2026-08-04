@@ -12,23 +12,21 @@ If these documents conflict, preserve the challenge requirements first, then ask
 
 ## Toolchain and Commands
 
-Phase 0 must establish this contract:
+The project uses this contract:
 
 - Application location: repository root; do not create a nested `app/` or `client/` project.
 - Package manager: npm with one committed `package-lock.json`.
 - Runtime: Node 24 LTS via `.nvmrc`; `package.json` may also accept supported Node 22 releases from `22.12.0` onward.
 
-After Phase 0, use these commands:
+After installing dependencies, use these commands:
 
 - `npm run dev` — start the Vite development server.
 - `npm test` — run the Vitest suite once.
 - `npm run test:watch` — run Vitest in watch mode.
 - `npm run typecheck` — run TypeScript without emitting output.
-- `npm run lint` — run ESLint.
+- `npm run lint` — run OXLint.
 - `npm run build` — type-check and create the production build.
 - `npm run preview` — serve the production build locally for final smoke testing.
-
-These commands are a scaffold requirement, not available commands until Phase 0 creates `package.json`.
 
 ## Working Agreement
 

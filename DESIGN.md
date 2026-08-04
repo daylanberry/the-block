@@ -119,7 +119,7 @@ Use graphite text on the orange action color unless contrast testing establishes
 ### Typography
 
 - Use a locally bundled condensed automotive face such as Barlow Condensed for display headings.
-- Use a highly legible sans serif such as Inter for controls and body copy.
+- Use IBM Plex Sans for controls and body copy.
 - Enable tabular numerals for prices, odometer values, lot numbers, and bid counts.
 - Use uppercase sparingly for short labels and inspection-style metadata, not paragraphs.
 
@@ -199,4 +199,3 @@ Use lot `D-0037`, the 2025 Volkswagen Tiguan, for the primary walkthrough. It ex
 ## Design Review Standard
 
 A phase is not visually complete because its happy path has styling. Review it against this document, the required states above, and the acceptance checklist in `PLAN.md`. Any deviation should be deliberate, recorded, and easier for the buyer to understand.
-

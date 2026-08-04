@@ -83,7 +83,7 @@ The memorable visual idea should be that the interface feels like an inspection 
 ## Technical Shape
 
 - React + Vite + TypeScript.
-- React Router for inventory and `/vehicles/:id` detail routes.
+- Wouter for lightweight inventory and `/vehicles/:id` detail routes.
 - Custom CSS with variables and a small token system; avoid a large UI framework.
 - A minimal icon package only if needed.
 - Build-time JSON import; no API layer for a static 200-record dataset.
@@ -125,7 +125,7 @@ These choices are locked before implementation so either assistant produces the 
   - `npm test` — Vitest once, suitable for verification and CI
   - `npm run test:watch` — Vitest watch mode
   - `npm run typecheck` — TypeScript check without output
-  - `npm run lint` — ESLint
+  - `npm run lint` — OXLint
   - `npm run build` — type-check followed by a production build
   - `npm run preview` — locally serve the production build
 - Keep the original root `README.md` intact until Phase 6. Before replacing it, preserve it verbatim as `docs/CHALLENGE.md`.
@@ -134,11 +134,11 @@ These choices are locked before implementation so either assistant produces the 
 
 ### Phase 0 — Decisions and scaffold
 
-- [ ] Reconfirm the agreed scope and scaffold contract.
-- [ ] Create the React/Vite/TypeScript app at the repository root without deleting or replacing challenge source files.
-- [ ] Add `.nvmrc`, npm metadata, `package-lock.json`, and every command in the scaffold contract.
-- [ ] Add routing, test setup, design tokens, and the base application shell.
-- [ ] Verify the documented commands and update `AGENTS.md` if their final names differ.
+- [x] Reconfirm the agreed scope and scaffold contract.
+- [x] Create the React/Vite/TypeScript app at the repository root without deleting or replacing challenge source files.
+- [x] Add `.nvmrc`, npm metadata, `package-lock.json`, and every command in the scaffold contract.
+- [x] Add routing, test setup, design tokens, and the base application shell.
+- [x] Verify the documented commands and update `AGENTS.md` if their final names differ.
 
 Exit: the app starts and every command documented in `AGENTS.md` resolves successfully.
 
@@ -236,7 +236,7 @@ Update this table at each phase boundary; record actual results rather than inte
 
 | Phase | Owner | Status | Outcome | Verification | Commit |
 |---|---|---|---|---|---|
-| 0 — Decisions and scaffold | — | Not started | — | — | — |
+| 0 — Decisions and scaffold | Codex | Complete | Root scaffold, Wouter routes, test foundation, and inspection-docket shell | 2 tests, typecheck, OXLint, build, preview, clean audit, and 375/1440 browser QA | `feat: scaffold React buyer experience` |
 | 1 — Domain and data layer | — | Not started | — | — | — |
 | 2 — Inventory experience | — | Not started | — | — | — |
 | 3 — Vehicle detail experience | — | Not started | — | — | — |
