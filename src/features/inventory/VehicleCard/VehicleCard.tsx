@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Link } from 'wouter'
 
-import { getAuctionStatus } from '../../domain/auction'
+import { getAuctionStatus } from '../../../domain/auction'
 import {
   formatAuctionStart,
   formatCurrency,
   formatOdometer,
-} from '../../domain/formatters'
-import type { ReserveStatus, TitleStatus, Vehicle } from '../../domain/types'
+} from '../../../domain/formatters'
+import type { ReserveStatus, TitleStatus, Vehicle } from '../../../domain/types'
+import './VehicleCard.css'
 
 interface VehicleCardProps {
   vehicle: Vehicle

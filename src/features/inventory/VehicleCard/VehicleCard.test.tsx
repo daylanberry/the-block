@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { Router } from 'wouter'
 import { memoryLocation } from 'wouter/memory-location'
 
-import { makeVehicle } from '../../test/vehicleFactory'
+import { makeVehicle } from '../../../test/vehicleFactory'
 import { VehicleCard } from './VehicleCard'
 
 const referenceTime = new Date(2026, 7, 4, 12)

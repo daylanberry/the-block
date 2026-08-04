@@ -8,7 +8,7 @@ import {
 } from '../../domain/inventory'
 import type { BodyStyleFilter, Vehicle } from '../../domain/types'
 import { vehicles } from '../../domain/vehicles'
-import { VehicleCard } from './VehicleCard'
+import { VehicleCard } from './VehicleCard/VehicleCard'
 import './inventory.css'
 
 interface InventoryRouteProps {
