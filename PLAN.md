@@ -153,9 +153,9 @@ Exit: components can consume presentation-ready vehicle data without embedding b
 
 ### Phase 2 — Inventory experience
 
-- [ ] Build the header, search field, body-style chips, result count, and empty state.
-- [ ] Build responsive vehicle cards with the first image, identity, location, odometer, condition/title risk, auction state, and current/opening bid.
-- [ ] Sort open vehicles first and link every card to its detail route.
+- [x] Build the header, search field, body-style chips, result count, and empty state.
+- [x] Build responsive vehicle cards with the first image, identity, location, odometer, condition/title risk, auction state, and current/opening bid.
+- [x] Sort open vehicles first and link every card to its detail route.
 
 Exit: a reviewer can quickly find and understand inventory at desktop and phone widths.
 
@@ -204,8 +204,8 @@ Treat the conditional stretch and optional motion as the first cuts if scope nee
 ## Acceptance Checklist
 
 - [ ] A fresh clone can be installed and started by following the README exactly.
-- [ ] All 200 vehicles are available to browse.
-- [ ] Search and body-style filtering work together and can be cleared.
+- [x] All 200 vehicles are available to browse.
+- [x] Search and body-style filtering work together and can be cleared.
 - [ ] Every vehicle has a navigable detail view containing all required information.
 - [ ] First bids and subsequent bids enforce the correct $500 increment rule.
 - [ ] A successful bid updates amount and count and remains visibly attributable to the current prototype user.
@@ -237,8 +237,8 @@ Update this table at each phase boundary; record actual results rather than inte
 | Phase | Owner | Status | Outcome | Verification | Commit |
 |---|---|---|---|---|---|
 | 0 — Decisions and scaffold | Codex | Complete | Root scaffold, Wouter routes, test foundation, and inspection-docket shell | 2 tests, typecheck, OXLint, build, preview, clean audit, and 375/1440 browser QA | `feat: scaffold React buyer experience` |
-| 1 — Domain and data layer | Codex | Complete | Runtime-validated 200-vehicle catalog, display normalization, rolling seven-day schedule, auction/reserve/bid rules, and inventory query helpers | 32 tests, typecheck, OXLint, build, clean audit, and localhost smoke test | Uncommitted for owner review |
-| 2 — Inventory experience | — | Not started | — | — | — |
+| 1 — Domain and data layer | Codex | Complete | Runtime-validated 200-vehicle catalog, display normalization, rolling seven-day schedule, auction/reserve/bid rules, and inventory query helpers | 32 tests, typecheck, OXLint, build, clean audit, and localhost smoke test | `5c64fa4` |
+| 2 — Inventory experience | Codex | Complete | Searchable 200-lot inventory, live open-first ordering, risk-forward vehicle cards, detail links, and deliberate empty/image-fallback states | 39 tests, typecheck, OXLint, build, clean audit, interaction smoke test, and 375/768/1440 browser QA | Uncommitted for owner review |
 | 3 — Vehicle detail experience | — | Not started | — | — | — |
 | 4 — Bid flow | — | Not started | — | — | — |
 | 5 — Craft, responsiveness, accessibility | — | Not started | — | — | — |

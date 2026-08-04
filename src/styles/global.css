@@ -207,15 +207,6 @@ a {
   flex: 1;
 }
 
-.inventory-intro {
-  display: grid;
-  padding: clamp(3.5rem, 8vw, 7.5rem) 0 clamp(2.5rem, 5vw, 4.5rem);
-  align-items: end;
-  grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.7fr);
-  gap: clamp(2rem, 6vw, 6rem);
-  animation: shell-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
 .eyebrow {
   margin: 0 0 var(--space-3);
   color: var(--color-action-dark);
@@ -225,7 +216,6 @@ a {
   text-transform: uppercase;
 }
 
-.inventory-intro h1,
 .route-message h1 {
   max-width: 12ch;
   margin: 0;
@@ -235,175 +225,6 @@ a {
   letter-spacing: -0.035em;
   line-height: 0.82;
   text-transform: uppercase;
-}
-
-.inventory-intro__lede {
-  max-width: 38rem;
-  margin: var(--space-6) 0 0;
-  color: var(--color-ink-soft);
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  line-height: 1.55;
-}
-
-.market-docket {
-  position: relative;
-  padding: var(--space-6);
-  overflow: hidden;
-  background: var(--color-surface);
-  border: 1px solid var(--color-rule-dark);
-  box-shadow: var(--shadow-lifted);
-}
-
-.market-docket::before {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 0.35rem;
-  background: var(--color-action);
-  content: '';
-}
-
-.market-docket__heading {
-  display: flex;
-  padding-bottom: var(--space-4);
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 2px solid var(--color-ink);
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.market-docket__heading strong {
-  color: var(--color-action-dark);
-  font-size: 1.6rem;
-}
-
-.market-docket dl {
-  margin: 0;
-}
-
-.market-docket dl div {
-  display: flex;
-  padding: var(--space-3) 0;
-  align-items: baseline;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--color-rule);
-}
-
-.market-docket dt {
-  color: var(--color-muted);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.market-docket dd {
-  margin: 0;
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-}
-
-.market-docket__status {
-  display: flex;
-  margin: var(--space-4) 0 0;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-positive);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.market-docket__status span {
-  width: 0.55rem;
-  height: 0.55rem;
-  background: currentcolor;
-  border-radius: 50%;
-}
-
-.workflow-board {
-  margin-bottom: clamp(4rem, 9vw, 8rem);
-  background: var(--color-brand-deep);
-  color: var(--color-surface);
-  border-top: 5px solid var(--color-brand);
-  animation: panel-rise 620ms 100ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.workflow-board__header {
-  display: grid;
-  padding: clamp(1.5rem, 4vw, 3rem);
-  align-items: end;
-  grid-template-columns: 1fr minmax(15rem, 0.65fr);
-  gap: var(--space-12);
-  border-bottom: 1px solid rgb(255 255 255 / 24%);
-}
-
-.workflow-board__header .eyebrow {
-  color: var(--color-brand-light);
-}
-
-.workflow-board__header h2 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(2.4rem, 5vw, 4.5rem);
-  letter-spacing: -0.02em;
-  line-height: 0.95;
-  text-transform: uppercase;
-}
-
-.workflow-board__header > p {
-  max-width: 32rem;
-  margin: 0;
-  color: rgb(255 255 255 / 72%);
-  line-height: 1.6;
-}
-
-.workflow-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.workflow-step {
-  min-height: 15rem;
-  padding: clamp(1.5rem, 4vw, 3rem);
-}
-
-.workflow-step + .workflow-step {
-  border-left: 1px solid rgb(255 255 255 / 24%);
-}
-
-.workflow-step__meta {
-  display: flex;
-  margin-bottom: var(--space-12);
-  align-items: center;
-  justify-content: space-between;
-  color: var(--color-brand-light);
-  font-family: var(--font-display);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.workflow-step h3 {
-  margin: 0 0 var(--space-3);
-  font-family: var(--font-display);
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.workflow-step p {
-  max-width: 25rem;
-  margin: 0;
-  color: rgb(255 255 255 / 68%);
-  line-height: 1.55;
 }
 
 .route-message {
@@ -535,40 +356,6 @@ a {
   }
 }
 
-@media (max-width: 52rem) {
-  .inventory-intro {
-    align-items: stretch;
-    grid-template-columns: 1fr;
-  }
-
-  .market-docket {
-    max-width: none;
-  }
-
-  .workflow-board__header {
-    align-items: start;
-    grid-template-columns: 1fr;
-    gap: var(--space-4);
-  }
-
-  .workflow-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .workflow-step {
-    min-height: auto;
-  }
-
-  .workflow-step + .workflow-step {
-    border-top: 1px solid rgb(255 255 255 / 24%);
-    border-left: 0;
-  }
-
-  .workflow-step__meta {
-    margin-bottom: var(--space-8);
-  }
-}
-
 @media (max-width: 40rem) {
   .app-header__inner {
     width: min(calc(100% - 2rem), var(--content-width));
@@ -597,21 +384,6 @@ a {
   .app-main,
   .app-footer {
     width: min(calc(100% - 2rem), var(--content-width));
-  }
-
-  .inventory-intro {
-    padding-top: var(--space-16);
-    gap: var(--space-8);
-  }
-
-  .inventory-intro h1 {
-    font-size: clamp(3.5rem, 20vw, 5.25rem);
-  }
-
-  .market-docket,
-  .workflow-board__header,
-  .workflow-step {
-    padding: var(--space-6);
   }
 
   .route-message {

@@ -9,7 +9,7 @@ export function App() {
   return (
     <AppShell>
       <Switch>
-        <Route path="/" component={InventoryRoute} />
+        <Route path="/">{() => <InventoryRoute />}</Route>
         <Route path="/vehicles/:vehicleId">
           {(params) => <VehicleRoute vehicleId={params.vehicleId} />}
         </Route>
