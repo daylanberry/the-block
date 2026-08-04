@@ -96,7 +96,7 @@ The confirmation control should state the amount, such as `Place $24,500 bid`, r
 
 ## Visual Direction
 
-The product should feel like an **industrial inspection docket joined with a live auction board**. It should not resemble a generic rounded-card SaaS dashboard.
+The product should feel like an **industrial inspection docket joined with a live auction board**, expressed through The Block's supplied cobalt identity. Treat the challenge artwork as a brand reference rather than a literal product screen: retain its broken-ring mark, confident blue, and automotive character without copying its decorative collage or glossy dashboard treatment.
 
 ### Color roles
 
@@ -104,17 +104,19 @@ Use these as initial implementation tokens and adjust only when contrast testing
 
 | Role | Token | Value | Use |
 |---|---|---:|---|
-| Canvas | `--color-canvas` | `#F1EEE5` | Warm page background |
-| Surface | `--color-surface` | `#FFFCF4` | Cards and detail sections |
-| Graphite | `--color-ink` | `#191B18` | Primary text and framing |
-| Muted | `--color-muted` | `#60645E` | Secondary information |
-| Rule | `--color-rule` | `#C9C6BC` | Dividers and boundaries |
-| Action | `--color-action` | `#F15A24` | Primary action and active control |
-| Positive | `--color-positive` | `#26734D` | Confirmed and reserve-met states |
-| Warning | `--color-warning` | `#9A6100` | Reserve-not-met and caution states |
-| Critical | `--color-critical` | `#A9362C` | Salvage and validation errors |
+| Canvas | `--color-canvas` | `#F4F7FB` | Cool neutral page background |
+| Surface | `--color-surface` | `#FFFFFF` | Cards and detail sections |
+| Ink | `--color-ink` | `#10233F` | Primary text and framing |
+| Muted | `--color-muted` | `#5B6878` | Secondary information |
+| Rule | `--color-rule` | `#CBD6E4` | Dividers and boundaries |
+| Brand | `--color-brand` | `#0B61F3` | Navigation, identity, and primary action |
+| Brand deep | `--color-brand-deep` | `#063478` | Dark framing and the logo segment |
+| Positive | `--color-positive` | `#087A57` | Confirmed and reserve-met states |
+| Warning | `--color-warning` | `#8A5700` | Reserve-not-met and caution states |
+| Critical | `--color-critical` | `#B8322A` | Salvage and validation errors |
+| Risk accent | `--color-risk-accent` | `#E05A2A` | Small high-risk emphasis only |
 
-Use graphite text on the orange action color unless contrast testing establishes a better accessible pairing. Status must always include text or an icon; color alone never carries meaning.
+Use white text on brand-blue actions. Green communicates success rather than every clickable action; orange and red are reserved for risk. Use the supplied broken-ring mark instead of inventing a second logo. Status must always include text or an icon; color alone never carries meaning.
 
 ### Typography
 

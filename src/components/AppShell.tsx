@@ -1,13 +1,13 @@
-import type { ReactNode } from 'react'
-import { Link, useLocation } from 'wouter'
+import type { ReactNode } from "react";
+import { Link, useLocation } from "wouter";
 
 interface AppShellProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const [location] = useLocation()
-  const isInventoryActive = location === '/'
+  const [location] = useLocation();
+  const isInventoryActive = location === "/";
 
   return (
     <div className="app-frame">
@@ -18,14 +18,15 @@ export function AppShell({ children }: AppShellProps) {
       <header className="app-header">
         <div className="app-header__inner">
           <Link className="brand" href="/" aria-label="The Block home">
-            <svg
-              className="brand__mark"
-              viewBox="0 0 48 48"
-              aria-hidden="true"
-            >
-              <path d="M3 3h29l13 13v29H3z" />
-              <path d="M11 10h11c7 0 11 3 11 8 0 3-2 6-5 7 4 1 7 4 7 8 0 6-4 9-12 9H11zm8 7v6h4c2 0 3-1 3-3s-1-3-3-3zm0 12v7h5c2 0 4-1 4-4 0-2-2-3-4-3z" />
-              <path d="M32 3v13h13z" />
+            <svg className="brand__mark" viewBox="0 0 48 48" aria-hidden="true">
+              <path
+                className="brand__ring-light"
+                d="M13.4 13.4A15 15 0 1 1 13.4 34.6"
+              />
+              <path
+                className="brand__ring-dark"
+                d="M11.7 32.6A15 15 0 0 1 11.7 15.4"
+              />
             </svg>
             <span className="brand__type">
               <strong>The Block</strong>
@@ -35,11 +36,11 @@ export function AppShell({ children }: AppShellProps) {
 
           <nav className="primary-nav" aria-label="Primary navigation">
             <Link
-              aria-current={isInventoryActive ? 'page' : undefined}
+              aria-current={isInventoryActive ? "page" : undefined}
               className={
                 isInventoryActive
-                  ? 'primary-nav__link primary-nav__link--active'
-                  : 'primary-nav__link'
+                  ? "primary-nav__link primary-nav__link--active"
+                  : "primary-nav__link"
               }
               href="/"
             >
@@ -66,5 +67,5 @@ export function AppShell({ children }: AppShellProps) {
         <span className="app-footer__market">Canada · CAD</span>
       </footer>
     </div>
-  )
+  );
 }

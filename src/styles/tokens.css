@@ -1,20 +1,24 @@
 :root {
   color-scheme: light;
 
-  --color-canvas: #f1eee5;
-  --color-canvas-deep: #e5e1d6;
-  --color-surface: #fffcf4;
-  --color-ink: #191b18;
-  --color-ink-soft: #30342f;
-  --color-muted: #60645e;
-  --color-rule: #c9c6bc;
-  --color-rule-dark: #8a8d86;
-  --color-action: #f15a24;
-  --color-action-dark: #bd3a12;
-  --color-positive: #26734d;
-  --color-warning: #9a6100;
-  --color-critical: #a9362c;
-  --color-focus: #005fcc;
+  --color-canvas: #f4f7fb;
+  --color-canvas-deep: #e8eef6;
+  --color-surface: #ffffff;
+  --color-ink: #10233f;
+  --color-ink-soft: #283b56;
+  --color-muted: #5b6878;
+  --color-rule: #cbd6e4;
+  --color-rule-dark: #8292a7;
+  --color-brand: #0b61f3;
+  --color-brand-deep: #063478;
+  --color-brand-light: #8fc0ff;
+  --color-action: #0b61f3;
+  --color-action-dark: #0649b5;
+  --color-positive: #087a57;
+  --color-warning: #8a5700;
+  --color-critical: #b8322a;
+  --color-risk-accent: #e05a2a;
+  --color-focus: #004fc6;
 
   --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --font-body: 'IBM Plex Sans', sans-serif;
@@ -31,5 +35,5 @@
   --radius-sm: 2px;
   --radius-md: 5px;
   --content-width: 80rem;
-  --shadow-lifted: 0 18px 50px rgb(25 27 24 / 10%);
+  --shadow-lifted: 0 18px 50px rgb(16 35 63 / 12%);
 }
