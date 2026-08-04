@@ -34,7 +34,7 @@ describe('vehicle card', () => {
       name: '2025 Volkswagen Tiguan Lot D-0037',
     })
 
-    expect(vehicleLink).toHaveAttribute('href', '/vehicles/D-0037')
+    expect(vehicleLink).toHaveAttribute('href', '/vehicles/vehicle-1')
     expect(vehicleLink).toHaveAccessibleName(
       '2025 Volkswagen Tiguan Lot D-0037',
     )
@@ -94,6 +94,6 @@ describe('vehicle card', () => {
       screen.getByRole('link', {
         name: '2025 Volkswagen Tiguan Lot D-0037',
       }),
-    ).toHaveAttribute('href', '/vehicles/D-0037')
+    ).toHaveAttribute('href', '/vehicles/vehicle-1')
   })
 })

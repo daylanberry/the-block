@@ -269,29 +269,6 @@ a {
   line-height: 1.6;
 }
 
-.route-message__stamp {
-  display: inline-grid;
-  margin-top: var(--space-8);
-  padding: var(--space-3) var(--space-6);
-  border: 2px solid var(--color-positive);
-  color: var(--color-positive);
-  font-family: var(--font-display);
-  letter-spacing: 0.1em;
-  line-height: 1;
-  text-align: center;
-  text-transform: uppercase;
-  transform: rotate(-2deg);
-}
-
-.route-message__stamp span {
-  font-size: 0.7rem;
-}
-
-.route-message__stamp strong {
-  margin-top: var(--space-1);
-  font-size: 1.5rem;
-}
-
 .text-link {
   display: inline-flex;
   min-height: 2.75rem;

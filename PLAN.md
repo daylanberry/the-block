@@ -83,7 +83,7 @@ The memorable visual idea should be that the interface feels like an inspection 
 ## Technical Shape
 
 - React + Vite + TypeScript.
-- Wouter for lightweight inventory and `/vehicles/:id` detail routes.
+- Wouter for lightweight inventory and `/vehicles/:vehicleId` detail routes.
 - Custom CSS with variables and a small token system; avoid a large UI framework.
 - A minimal icon package only if needed.
 - Build-time JSON import; no API layer for a static 200-record dataset.
@@ -161,10 +161,10 @@ Exit: a reviewer can quickly find and understand inventory at desktop and phone 
 
 ### Phase 3 — Vehicle detail experience
 
-- [ ] Build the photo gallery and image fallback.
-- [ ] Build the summary, specs, condition, damage, seller/location, VIN, and lot sections.
-- [ ] Build the desktop sticky bid rail and mobile bid placement.
-- [ ] Handle null reserve, null current bid, empty damage notes, and title-risk states explicitly.
+- [x] Build the photo gallery and image fallback.
+- [x] Build the summary, specs, condition, damage, seller/location, VIN, and lot sections.
+- [x] Build the desktop sticky auction rail and place it immediately after the gallery on mobile.
+- [x] Handle null reserve, null current bid, empty damage notes, and title-risk states explicitly.
 
 Exit: every core detail requirement is present with clear risk hierarchy.
 
@@ -206,11 +206,11 @@ Treat the conditional stretch and optional motion as the first cuts if scope nee
 - [ ] A fresh clone can be installed and started by following the README exactly.
 - [x] All 200 vehicles are available to browse.
 - [x] Search and body-style filtering work together and can be cleared.
-- [ ] Every vehicle has a navigable detail view containing all required information.
+- [x] Every vehicle has a navigable detail view containing all required information.
 - [ ] First bids and subsequent bids enforce the correct $500 increment rule.
 - [ ] A successful bid updates amount and count and remains visibly attributable to the current prototype user.
-- [ ] No UI exposes an exact reserve amount or offers a nonfunctional Buy Now action.
-- [ ] Null and empty data render as deliberate states, not blank space or `null`.
+- [x] No UI exposes an exact reserve amount or offers a nonfunctional Buy Now action.
+- [x] Null and empty data render as deliberate states, not blank space or `null`.
 - [ ] The core journey works at 375px and 1440px without horizontal overflow.
 - [ ] Keyboard focus, labels, contrast, and reduced-motion behavior have been checked.
 - [ ] Tests, type-checking, linting, and production build pass.
@@ -238,8 +238,8 @@ Update this table at each phase boundary; record actual results rather than inte
 |---|---|---|---|---|---|
 | 0 — Decisions and scaffold | Codex | Complete | Root scaffold, Wouter routes, test foundation, and inspection-docket shell | 2 tests, typecheck, OXLint, build, preview, clean audit, and 375/1440 browser QA | `feat: scaffold React buyer experience` |
 | 1 — Domain and data layer | Codex | Complete | Runtime-validated 200-vehicle catalog, display normalization, rolling seven-day schedule, auction/reserve/bid rules, and inventory query helpers | 32 tests, typecheck, OXLint, build, clean audit, and localhost smoke test | `5c64fa4` |
-| 2 — Inventory experience | Codex | Complete | Searchable 200-lot inventory, live open-first ordering, risk-forward vehicle cards, detail links, and deliberate empty/image-fallback states | 39 tests, typecheck, OXLint, build, clean audit, interaction smoke test, and 375/768/1440 browser QA | Uncommitted for owner review |
-| 3 — Vehicle detail experience | — | Not started | — | — | — |
+| 2 — Inventory experience | Codex | Complete | Searchable 200-lot inventory, live open-first ordering, risk-forward vehicle cards, detail links, and deliberate empty/image-fallback states | 39 tests, typecheck, OXLint, build, clean audit, interaction smoke test, and 375/768/1440 browser QA | `00e2b2a`, `e0db903` |
+| 3 — Vehicle detail experience | Codex | Complete | Vehicle-ID detail routes, resilient gallery, read-only auction rail, complete specs and seller data, plus explicit risk, conflicting-data, null, and missing-vehicle states | 51 tests, typecheck, OXLint, build, clean audit, gallery interaction smoke test, and 375/768/1440 browser QA | Uncommitted for owner review |
 | 4 — Bid flow | — | Not started | — | — | — |
 | 5 — Craft, responsiveness, accessibility | — | Not started | — | — | — |
 | 6 — Verification and submission package | — | Not started | — | — | — |

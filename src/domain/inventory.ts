@@ -12,6 +12,13 @@ export interface InventoryFilters {
   bodyStyle: BodyStyleFilter
 }
 
+export function findVehicleById(
+  inventory: readonly Vehicle[],
+  vehicleId: string,
+) {
+  return inventory.find((vehicle) => vehicle.id === vehicleId)
+}
+
 function normalizeSearchText(value: string | number) {
   return String(value)
     .normalize('NFD')

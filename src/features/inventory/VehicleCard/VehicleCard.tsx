@@ -78,7 +78,7 @@ export function VehicleCard({ vehicle, now }: VehicleCardProps) {
     <article className="vehicle-card">
       <Link
         className="vehicle-card__link"
-        href={`/vehicles/${vehicle.lot}`}
+        href={`/vehicles/${vehicle.id}`}
         aria-labelledby={`${titleId} ${lotId}`}
       >
         <div className="vehicle-card__media">

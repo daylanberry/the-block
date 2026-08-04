@@ -31,16 +31,30 @@ describe('application routing', () => {
   })
 
   it('supports a direct vehicle detail route', () => {
-    renderRoute('/vehicles/D-0037')
+    renderRoute('/vehicles/25090c56-ea41-4067-904d-d0da6854f69e')
 
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: /lot d-0037/i,
+        name: '2025 Volkswagen Tiguan',
       }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: /back to inventory/i }),
+    ).toHaveAttribute('href', '/')
+  })
+
+  it('renders a vehicle-specific recovery state for an unknown id', () => {
+    renderRoute('/vehicles/missing-vehicle')
+
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Vehicle was not found.',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /return to inventory/i }),
     ).toHaveAttribute('href', '/')
   })
 })

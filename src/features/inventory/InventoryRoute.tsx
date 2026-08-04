@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
 import { getAuctionStatus } from '../../domain/auction'
 import {
@@ -8,6 +8,7 @@ import {
 } from '../../domain/inventory'
 import type { BodyStyleFilter, Vehicle } from '../../domain/types'
 import { vehicles } from '../../domain/vehicles'
+import { useReferenceTime } from '../../hooks/useReferenceTime'
 import { VehicleCard } from './VehicleCard/VehicleCard'
 import './inventory.css'
 
@@ -22,19 +23,8 @@ export function InventoryRoute({
 }: InventoryRouteProps) {
   const [query, setQuery] = useState('')
   const [bodyStyle, setBodyStyle] = useState<BodyStyleFilter>('All')
-  const [liveTime, setLiveTime] = useState(() => new Date())
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const referenceTime = suppliedNow ?? liveTime
-
-  useEffect(() => {
-    if (suppliedNow) {
-      return
-    }
-
-    const timer = window.setInterval(() => setLiveTime(new Date()), 60_000)
-
-    return () => window.clearInterval(timer)
-  }, [suppliedNow])
+  const referenceTime = useReferenceTime(suppliedNow)
 
   const orderedInventory = useMemo(
     () => sortOpenVehiclesFirst(inventory, referenceTime),

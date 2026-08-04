@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { Vehicle } from './types'
 import {
+  findVehicleById,
   filterVehicles,
   matchesVehicleSearch,
   sortOpenVehiclesFirst,
@@ -88,6 +89,19 @@ describe('inventory search and filtering', () => {
     expect(
       filterVehicles([tiguan, sedan], { query: '  ', bodyStyle: 'All' }),
     ).toEqual([tiguan, sedan])
+  })
+
+  it('resolves route vehicles by id even when multiple vehicles share a lot', () => {
+    const secondVehicleInLot = makeVehicle({
+      id: 'vehicle-3',
+      model: 'Atlas',
+      lot: tiguan.lot,
+    })
+
+    expect(findVehicleById([tiguan, secondVehicleInLot], 'vehicle-3')).toBe(
+      secondVehicleInLot,
+    )
+    expect(findVehicleById([tiguan, sedan], 'missing')).toBeUndefined()
   })
 })
 
