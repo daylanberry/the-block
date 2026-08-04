@@ -60,7 +60,7 @@ Primary demo journey:
   - existing current bid: `current_bid + 500`
 - Keep reserve price private. Derive only `No reserve`, `Reserve not met`, or `Reserve met`.
 - Normalize display casing without mutating source data (`sedan` → `Sedan`, while retaining `SUV`, `CVT`, and similar labels).
-- Normalize the stale seven-day `auction_start` schedule deterministically relative to the demo day.
+- Normalize the stale seven-day `auction_start` schedule deterministically by mapping its final calendar day to tomorrow and preserving every day/time offset.
 - Label time honestly as `Auction starts` or `Open`; the dataset has no auction end time or timezone, so do not claim an auction is "ending soon."
 - Auctions whose normalized start has passed may accept bids. Sort open vehicles first so the core flow is immediately available.
 - Keep client-side bid state in a small reducer and persist it locally only if that remains simple. Clearly label persistence as prototype-only.
@@ -70,8 +70,8 @@ Primary demo journey:
 
 Use an **industrial inspection-docket** aesthetic rather than a generic marketplace dashboard:
 
-- warm paper surfaces against graphite navigation and framing
-- safety orange as the primary action color
+- cool neutral surfaces against cobalt navigation and deep-navy framing
+- cobalt as the primary action color and identity layer
 - green, amber, and red reserved for trustworthy status meaning
 - condensed automotive typography for headings and tabular bid numbers, paired with a highly readable body face
 - lot-number stamps, inspection-style dividers, and compact metadata that support the auction context
@@ -144,10 +144,10 @@ Exit: the app starts and every command documented in `AGENTS.md` resolves succes
 
 ### Phase 1 — Domain and data layer
 
-- [ ] Define the `Vehicle` and bid-state types.
-- [ ] Import and validate the supplied data shape.
-- [ ] Implement formatting, normalized scheduling, reserve state, search, body filter, and minimum-bid helpers.
-- [ ] Add focused unit tests for bid calculation and search/filter behavior.
+- [x] Define the `Vehicle` and bid-state types.
+- [x] Import and validate the supplied data shape.
+- [x] Implement formatting, normalized scheduling, reserve state, search, body filter, and minimum-bid helpers.
+- [x] Add focused unit tests for bid calculation and search/filter behavior.
 
 Exit: components can consume presentation-ready vehicle data without embedding business rules.
 
@@ -237,7 +237,7 @@ Update this table at each phase boundary; record actual results rather than inte
 | Phase | Owner | Status | Outcome | Verification | Commit |
 |---|---|---|---|---|---|
 | 0 — Decisions and scaffold | Codex | Complete | Root scaffold, Wouter routes, test foundation, and inspection-docket shell | 2 tests, typecheck, OXLint, build, preview, clean audit, and 375/1440 browser QA | `feat: scaffold React buyer experience` |
-| 1 — Domain and data layer | — | Not started | — | — | — |
+| 1 — Domain and data layer | Codex | Complete | Runtime-validated 200-vehicle catalog, display normalization, rolling seven-day schedule, auction/reserve/bid rules, and inventory query helpers | 32 tests, typecheck, OXLint, build, clean audit, and localhost smoke test | Uncommitted for owner review |
 | 2 — Inventory experience | — | Not started | — | — | — |
 | 3 — Vehicle detail experience | — | Not started | — | — | — |
 | 4 — Bid flow | — | Not started | — | — | — |
