@@ -1,10 +1,6 @@
 import { Link } from 'wouter'
 
-import { getAuctionStatus } from '../../domain/auction'
-import {
-  formatAuctionStart,
-  formatOdometer,
-} from '../../domain/formatters'
+import { formatOdometer } from '../../domain/formatters'
 import {
   getConflictingTitleMention,
   getTitleTone,
@@ -27,10 +23,10 @@ export function VehicleRoute({
   onPlaceBid,
 }: VehicleRouteProps) {
   const referenceTime = useReferenceTime(suppliedNow)
-  const auctionStatus = getAuctionStatus(vehicle.auctionStart, referenceTime)
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
   const damageCount = vehicle.damageNotes.length
   const titleTone = getTitleTone(vehicle.titleStatus)
+  // Flag when the structured title status conflicts with the free-text report.
   const conflictingTitleMention = getConflictingTitleMention(
     vehicle.titleStatus,
     vehicle.conditionReport,
@@ -60,27 +56,6 @@ export function VehicleRoute({
             <span>{formatOdometer(vehicle.odometerKm)}</span>
           </div>
         </div>
-
-        <div className="vehicle-detail__docket">
-          <div className="vehicle-detail__lot">
-            <span>Lot</span>
-            <strong>{vehicle.lot}</strong>
-          </div>
-          <div
-            className="vehicle-detail__auction-state"
-            data-status={auctionStatus.toLowerCase()}
-          >
-            <span>Auction status</span>
-            <strong>{auctionStatus}</strong>
-            {auctionStatus === 'Scheduled' ? (
-              <time dateTime={vehicle.auctionStart.toISOString()}>
-                {formatAuctionStart(vehicle.auctionStart)}
-              </time>
-            ) : (
-              <small>Buyer bidding window open</small>
-            )}
-          </div>
-        </div>
       </header>
 
       <div className="vehicle-detail__layout">
@@ -105,9 +80,7 @@ export function VehicleRoute({
             aria-labelledby="condition-title"
           >
             <header className="detail-section__heading">
-              <p>
-                <span>01</span> Inspection summary
-              </p>
+              <p>Inspection summary</p>
               <h2 id="condition-title">Condition &amp; title</h2>
             </header>
 
@@ -179,9 +152,7 @@ export function VehicleRoute({
 
           <section className="detail-section" aria-labelledby="specifications-title">
             <header className="detail-section__heading">
-              <p>
-                <span>02</span> Vehicle record
-              </p>
+              <p>Vehicle record</p>
               <h2 id="specifications-title">Specifications</h2>
             </header>
 
@@ -226,9 +197,7 @@ export function VehicleRoute({
             aria-labelledby="seller-title"
           >
             <header className="detail-section__heading">
-              <p>
-                <span>03</span> Lot provenance
-              </p>
+              <p>Lot provenance</p>
               <h2 id="seller-title">Seller &amp; identifiers</h2>
             </header>
 

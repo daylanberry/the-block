@@ -553,7 +553,7 @@
 
   .bid-dialog__mobile-launcher--scrolling {
     color: rgb(255 255 255 / 92%);
-    background: rgb(45 54 68 / 56%);
+    background: rgb(45 54 68 / 74%);
     border-color: rgb(255 255 255 / 46%);
     box-shadow:
       0 8px 24px rgb(6 20 46 / 16%),
@@ -564,7 +564,7 @@
   }
 
   .bid-dialog__mobile-launcher--scrolling > strong {
-    color: rgb(255 255 255 / 74%);
+    color: rgb(255 255 255 / 88%);
   }
 
   .bid-dialog__mobile-launcher--scrolling:hover {

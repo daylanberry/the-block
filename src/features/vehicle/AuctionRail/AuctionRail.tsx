@@ -40,15 +40,22 @@ export function AuctionRail({
       <header
         className={`auction-rail__header auction-rail__header--${auctionStatus.toLowerCase()}`}
       >
-        <p>Auction position</p>
-        <h2 id="auction-title">
+        <div className="auction-rail__meta">
+          <div className="auction-rail__lot">
+            <span>Lot</span>
+            <strong>{vehicle.lot}</strong>
+          </div>
+          <span
+            className="auction-rail__status-badge"
+            data-status={auctionStatus.toLowerCase()}
+            aria-hidden="true"
+          >
+            {auctionStatus}
+          </span>
+        </div>
+        <h2 id="auction-title" aria-live="polite">
           {auctionStatus === 'Open' ? 'Open for bidding' : 'Scheduled'}
         </h2>
-        {auctionStatus === 'Scheduled' ? (
-          <span>Bid entry unavailable</span>
-        ) : isYourBid ? (
-          <span>You hold the current bid</span>
-        ) : null}
       </header>
 
       <div className="auction-rail__price">

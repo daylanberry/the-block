@@ -32,12 +32,8 @@
 }
 
 .vehicle-detail__hero {
-  display: grid;
   margin-top: var(--space-6);
   padding-bottom: clamp(1.5rem, 3vw, 2.5rem);
-  align-items: end;
-  grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.43fr);
-  gap: clamp(2rem, 7vw, 7rem);
 }
 
 .vehicle-detail__identity h1 {
@@ -80,81 +76,6 @@
   width: 0.3rem;
   height: 0.3rem;
   background: var(--color-brand);
-  border-radius: 50%;
-  content: '';
-}
-
-.vehicle-detail__docket {
-  display: grid;
-  min-height: 10rem;
-  color: var(--color-surface);
-  background: var(--color-brand-deep);
-  border-top: 5px solid var(--color-brand);
-  border-radius: var(--radius-sm);
-  grid-template-columns: 0.88fr 1.12fr;
-  box-shadow: var(--shadow-lifted);
-  overflow: hidden;
-}
-
-.vehicle-detail__lot,
-.vehicle-detail__auction-state {
-  display: flex;
-  min-width: 0;
-  padding: var(--space-6);
-  justify-content: flex-end;
-  flex-direction: column;
-}
-
-.vehicle-detail__lot {
-  border-right: 1px solid rgb(255 255 255 / 25%);
-}
-
-.vehicle-detail__lot span,
-.vehicle-detail__auction-state > span,
-.vehicle-detail__auction-state small {
-  color: var(--color-brand-light);
-  font-size: 0.64rem;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-}
-
-.vehicle-detail__lot strong {
-  margin-top: var(--space-3);
-  font-family: var(--font-display);
-  font-size: clamp(2.3rem, 4vw, 3.25rem);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.03em;
-  line-height: 0.8;
-}
-
-.vehicle-detail__auction-state strong {
-  margin: var(--space-3) 0;
-  font-family: var(--font-display);
-  font-size: 2rem;
-  letter-spacing: -0.02em;
-  line-height: 0.8;
-  text-transform: uppercase;
-}
-
-.vehicle-detail__auction-state time,
-.vehicle-detail__auction-state small {
-  color: rgb(255 255 255 / 88%);
-  font-size: 0.68rem;
-  font-style: normal;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.03em;
-  line-height: 1.4;
-}
-
-.vehicle-detail__auction-state[data-status='open'] strong::before {
-  display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  margin-right: var(--space-2);
-  vertical-align: 0.22em;
-  background: var(--color-positive);
-  border: 2px solid var(--color-surface);
   border-radius: 50%;
   content: '';
 }
@@ -210,18 +131,9 @@
   text-transform: uppercase;
 }
 
-.detail-section__heading p span {
-  display: block;
-  margin-bottom: var(--space-2);
-  color: var(--color-brand);
-  font-family: var(--font-display);
-  font-size: 1.7rem;
-  letter-spacing: 0;
-  line-height: 0.8;
-}
-
 .detail-section__heading h2 {
-  max-width: 9ch;
+  max-width: 14ch;
+  min-width: 0;
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(2.6rem, 5vw, 4.25rem);
@@ -534,12 +446,6 @@
 }
 
 @media (max-width: 64rem) {
-  .vehicle-detail__hero {
-    align-items: stretch;
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.65fr);
-    gap: var(--space-8);
-  }
-
   .vehicle-detail__layout {
     grid-template-areas:
       'gallery'
@@ -550,14 +456,6 @@
 }
 
 @media (max-width: 48rem) {
-  .vehicle-detail__hero {
-    grid-template-columns: 1fr;
-  }
-
-  .vehicle-detail__docket {
-    min-height: 8.5rem;
-  }
-
   .risk-summary {
     grid-template-columns: 1fr 1fr;
   }
@@ -625,11 +523,6 @@
 
   .vehicle-detail__meta span + span::before {
     display: none;
-  }
-
-  .vehicle-detail__lot,
-  .vehicle-detail__auction-state {
-    padding: var(--space-4);
   }
 
   .vehicle-detail__layout,

@@ -65,6 +65,8 @@ describe('vehicle detail route', () => {
     const auctionRail = screen.getByRole('complementary', {
       name: 'Open for bidding',
     })
+    expect(within(auctionRail).getByText('D-0037')).toBeInTheDocument()
+    expect(within(auctionRail).getByText('Open')).toBeInTheDocument()
     expect(within(auctionRail).getByText('Current bid')).toBeInTheDocument()
     expect(within(auctionRail).getByText('$29,500')).toBeInTheDocument()
     expect(within(auctionRail).getByText('8 bids')).toBeInTheDocument()
@@ -107,12 +109,11 @@ describe('vehicle detail route', () => {
     expect(
       screen.getByRole('complementary', { name: 'Scheduled' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Bid entry unavailable')).toBeInTheDocument()
     expect(screen.getByText('Starting bid')).toBeInTheDocument()
     expect(screen.getByText('$22,000')).toBeInTheDocument()
     expect(screen.getByText('No bids yet')).toBeInTheDocument()
     expect(screen.getByText('No reserve')).toBeInTheDocument()
-    expect(screen.getAllByText('Wed, Aug 5, 2:00 p.m.')).toHaveLength(2)
+    expect(screen.getByText('Wed, Aug 5, 2:00 p.m.')).toBeInTheDocument()
     expect(screen.getByText('Rebuilt')).toBeInTheDocument()
     expect(screen.getByText('Scratch on liftgate')).toBeInTheDocument()
     expect(screen.getByText('Paint chip on hood')).toBeInTheDocument()
