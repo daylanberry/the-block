@@ -172,15 +172,11 @@ function readStringArray(
   record: UnknownRecord,
   key: string,
   path: string,
-  requireItems = false,
 ) {
   const value = record[key];
 
-  if (!Array.isArray(value) || (requireItems && value.length === 0)) {
-    return invalid(
-      `${path}.${key}`,
-      requireItems ? "must be a non-empty array" : "must be an array",
-    );
+  if (!Array.isArray(value)) {
+    return invalid(`${path}.${key}`, "must be an array");
   }
 
   return value.map((item, index) => {
@@ -189,6 +185,33 @@ function readStringArray(
     }
 
     return item;
+  });
+}
+
+function readImageArray(record: UnknownRecord, key: string, path: string) {
+  const value = record[key];
+
+  if (value === null) {
+    return [];
+  }
+
+  if (!Array.isArray(value)) {
+    return invalid(`${path}.${key}`, "must be an array or null");
+  }
+
+  return value.flatMap((item, index) => {
+    if (item === null) {
+      return [];
+    }
+
+    if (typeof item !== "string" || item.trim() === "") {
+      return invalid(
+        `${path}.${key}[${index}]`,
+        "must be a non-empty string or null",
+      );
+    }
+
+    return [item];
   });
 }
 
@@ -300,7 +323,7 @@ function parseRawVehicle(value: unknown, index: number): RawVehicle {
     }),
     reserve_price: readNullablePositiveInteger(record, "reserve_price", path),
     buy_now_price: readNullablePositiveInteger(record, "buy_now_price", path),
-    images: readStringArray(record, "images", path, true),
+    images: readImageArray(record, "images", path),
     selling_dealership: readString(record, "selling_dealership", path),
     lot: readString(record, "lot", path),
     current_bid: readNullablePositiveInteger(record, "current_bid", path),
@@ -336,7 +359,7 @@ function parseRawVehicle(value: unknown, index: number): RawVehicle {
 
 function assertUnique(
   vehicles: readonly RawVehicle[],
-  key: "id" | "lot" | "vin",
+  key: "id" | "vin",
 ) {
   const values = new Set<string>();
 
@@ -408,7 +431,6 @@ export function loadVehicleCatalog(
 
   assertUnique(rawVehicles, "id");
   assertUnique(rawVehicles, "vin");
-  assertUnique(rawVehicles, "lot");
 
   const normalizedAuctionStarts = normalizeAuctionSchedule(
     rawVehicles.map((vehicle) => vehicle.auction_start),

@@ -78,6 +78,58 @@ describe('vehicle data loading', () => {
     ).toThrow('vehicles[1].id must be unique')
   })
 
+  it('allows multiple vehicles to share a lot', () => {
+    const catalog = loadVehicleCatalog(
+      [
+        rawVehicleData[0],
+        { ...rawVehicleData[1], lot: rawVehicleData[0].lot },
+      ],
+      demoDate,
+    )
+
+    expect(catalog.vehicles).toHaveLength(2)
+    expect(catalog.vehicles.map((vehicle) => vehicle.id)).toEqual([
+      rawVehicleData[0].id,
+      rawVehicleData[1].id,
+    ])
+  })
+
+  it('drops null image entries while preserving usable photos', () => {
+    const validImage = rawVehicleData[0].images[0]
+    const catalog = loadVehicleCatalog(
+      [
+        {
+          ...rawVehicleData[0],
+          images: [null, validImage, null],
+        },
+      ],
+      demoDate,
+    )
+
+    expect(catalog.vehicles[0].images).toEqual([validImage])
+  })
+
+  it.each([null, [null]])(
+    'normalizes unusable image data %j to an empty gallery',
+    (images) => {
+      const catalog = loadVehicleCatalog(
+        [{ ...rawVehicleData[0], images }],
+        demoDate,
+      )
+
+      expect(catalog.vehicles[0].images).toEqual([])
+    },
+  )
+
+  it('still rejects non-null image values that are not strings', () => {
+    expect(() =>
+      loadVehicleCatalog(
+        [{ ...rawVehicleData[0], images: [rawVehicleData[0].images[0], 42] }],
+        demoDate,
+      ),
+    ).toThrow('vehicles[0].images[1]')
+  })
+
   it('accepts a first bid equal to the starting bid', () => {
     const sourceVehicle = rawVehicleData[0]
     const catalog = loadVehicleCatalog(

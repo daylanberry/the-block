@@ -55,11 +55,13 @@ Primary demo journey:
 ## Data Decisions
 
 - Treat all money as CAD and document that assumption; the dataset contains Canadian locations but no currency field.
+- Treat `vehicle.id` as the canonical route and state identity; lot numbers are searchable display metadata and may repeat.
 - Minimum bid:
   - no current bid: `starting_bid`
   - existing current bid: `current_bid + 500`
 - Keep reserve price private. Derive only `No reserve`, `Reserve not met`, or `Reserve met`.
 - Normalize display casing without mutating source data (`sedan` → `Sedan`, while retaining `SUV`, `CVT`, and similar labels).
+- Discard null image entries during normalization and show the stable image fallback when no usable photography remains.
 - Normalize the stale seven-day `auction_start` schedule deterministically by mapping its final calendar day to tomorrow and preserving every day/time offset.
 - Label time honestly as `Auction starts` or `Open`; the dataset has no auction end time or timezone, so do not claim an auction is "ending soon."
 - Auctions whose normalized start has passed may accept bids. Sort open vehicles first so the core flow is immediately available.
@@ -239,7 +241,7 @@ Update this table at each phase boundary; record actual results rather than inte
 | 0 — Decisions and scaffold | Codex | Complete | Root scaffold, Wouter routes, test foundation, and inspection-docket shell | 2 tests, typecheck, OXLint, build, preview, clean audit, and 375/1440 browser QA | `feat: scaffold React buyer experience` |
 | 1 — Domain and data layer | Codex | Complete | Runtime-validated 200-vehicle catalog, display normalization, rolling seven-day schedule, auction/reserve/bid rules, and inventory query helpers | 32 tests, typecheck, OXLint, build, clean audit, and localhost smoke test | `5c64fa4` |
 | 2 — Inventory experience | Codex | Complete | Searchable 200-lot inventory, live open-first ordering, risk-forward vehicle cards, detail links, and deliberate empty/image-fallback states | 39 tests, typecheck, OXLint, build, clean audit, interaction smoke test, and 375/768/1440 browser QA | `00e2b2a`, `e0db903` |
-| 3 — Vehicle detail experience | Codex | Complete | Vehicle-ID detail routes, resilient gallery, read-only auction rail, complete specs and seller data, plus explicit risk, conflicting-data, null, and missing-vehicle states | 51 tests, typecheck, OXLint, build, clean audit, gallery interaction smoke test, and 375/768/1440 browser QA | Uncommitted for owner review |
+| 3 — Vehicle detail experience | Codex | Complete | Vehicle-ID detail routes, null-safe gallery and cards, read-only auction rail, complete specs and seller data, plus explicit risk, conflicting-data, null, and missing-vehicle states | 58 tests, typecheck, OXLint, build, clean audit, gallery interaction smoke test, and 375/768/1440 browser QA | Uncommitted for owner review |
 | 4 — Bid flow | — | Not started | — | — | — |
 | 5 — Craft, responsiveness, accessibility | — | Not started | — | — | — |
 | 6 — Verification and submission package | — | Not started | — | — | — |

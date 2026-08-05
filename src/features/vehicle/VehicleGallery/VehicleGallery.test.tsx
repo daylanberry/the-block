@@ -95,4 +95,22 @@ describe('vehicle gallery', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('No supplied photography')).toBeInTheDocument()
   })
+
+  it('ignores null entries and keeps valid photography usable', () => {
+    render(
+      <VehicleGallery
+        {...defaultProps}
+        images={[null, 'https://example.com/working-photo.jpg', undefined]}
+      />,
+    )
+
+    expect(
+      screen.getByRole('img', {
+        name: '2025 Volkswagen Tiguan SE R-Line, photo 1 of 1',
+      }),
+    ).toHaveAttribute('src', 'https://example.com/working-photo.jpg')
+    expect(
+      screen.queryByRole('button', { name: /view photo/i }),
+    ).not.toBeInTheDocument()
+  })
 })

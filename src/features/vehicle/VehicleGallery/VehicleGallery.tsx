@@ -6,7 +6,11 @@ interface VehicleGalleryProps {
   vehicleId: string
   vehicleName: string
   lot: string
-  images: readonly string[]
+  images: readonly (string | null | undefined)[]
+}
+
+function isUsableImage(image: string | null | undefined): image is string {
+  return typeof image === 'string' && image.trim() !== ''
 }
 
 export function VehicleGallery({
@@ -18,10 +22,12 @@ export function VehicleGallery({
   const titleId = useId()
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [failedIndexes, setFailedIndexes] = useState(() => new Set<number>())
-  const selectedImage = images[selectedIndex]
+  const usableImages = images.filter(isUsableImage)
+  const selectedImage = usableImages[selectedIndex]
   const selectedImageFailed = failedIndexes.has(selectedIndex)
   const hasSelectedImage = selectedImage !== undefined && !selectedImageFailed
-  const selectedPhotoNumber = images.length === 0 ? 0 : selectedIndex + 1
+  const selectedPhotoNumber =
+    usableImages.length === 0 ? 0 : selectedIndex + 1
 
   useEffect(() => {
     setSelectedIndex(0)
@@ -46,7 +52,7 @@ export function VehicleGallery({
         <p aria-live="polite" aria-atomic="true">
           <strong>{String(selectedPhotoNumber).padStart(2, '0')}</strong>
           <span aria-hidden="true"> / </span>
-          {String(images.length).padStart(2, '0')}
+          {String(usableImages.length).padStart(2, '0')}
         </p>
       </header>
 
@@ -55,7 +61,7 @@ export function VehicleGallery({
           {hasSelectedImage ? (
             <img
               src={selectedImage}
-              alt={`${vehicleName}, photo ${selectedPhotoNumber} of ${images.length}`}
+              alt={`${vehicleName}, photo ${selectedPhotoNumber} of ${usableImages.length}`}
               decoding="async"
               fetchPriority="high"
               onError={() => markImageFailed(selectedIndex)}
@@ -75,16 +81,16 @@ export function VehicleGallery({
         <figcaption>
           <span>Lot {lot}</span>
           <span>
-            {images.length === 0
+            {usableImages.length === 0
               ? 'No supplied photography'
-              : `Photo ${selectedPhotoNumber} of ${images.length}`}
+              : `Photo ${selectedPhotoNumber} of ${usableImages.length}`}
           </span>
         </figcaption>
       </figure>
 
-      {images.length > 1 ? (
+      {usableImages.length > 1 ? (
         <div className="vehicle-gallery__thumbnails" aria-label="Vehicle photos">
-          {images.map((image, index) => {
+          {usableImages.map((image, index) => {
             const isFailed = failedIndexes.has(index)
             const isSelected = selectedIndex === index
 
@@ -93,7 +99,7 @@ export function VehicleGallery({
                 key={`${image}-${index}`}
                 className={isSelected ? 'is-selected' : undefined}
                 type="button"
-                aria-label={`View photo ${index + 1} of ${images.length}`}
+                aria-label={`View photo ${index + 1} of ${usableImages.length}`}
                 aria-pressed={isSelected}
                 onClick={() => setSelectedIndex(index)}
               >

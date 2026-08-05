@@ -34,8 +34,9 @@ function getReserveTone(reserveStatus: ReserveStatus) {
 function VehicleImage({ vehicle }: Pick<VehicleCardProps, 'vehicle'>) {
   const [hasError, setHasError] = useState(false)
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`
+  const primaryImage = vehicle.images[0]
 
-  if (hasError) {
+  if (hasError || !primaryImage) {
     return (
       <div
         className="vehicle-card__image-fallback"
@@ -51,7 +52,7 @@ function VehicleImage({ vehicle }: Pick<VehicleCardProps, 'vehicle'>) {
   return (
     <img
       className="vehicle-card__image"
-      src={vehicle.images[0]}
+      src={primaryImage}
       alt={`${vehicleName}, lot ${vehicle.lot}`}
       loading="lazy"
       decoding="async"

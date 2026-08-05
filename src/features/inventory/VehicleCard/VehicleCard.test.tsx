@@ -96,4 +96,14 @@ describe('vehicle card', () => {
       }),
     ).toHaveAttribute('href', '/vehicles/vehicle-1')
   })
+
+  it('uses the image fallback when no usable photo is supplied', () => {
+    renderCard(makeVehicle({ images: [] }))
+
+    expect(
+      screen.getByRole('img', {
+        name: /photo unavailable for 2025 volkswagen tiguan/i,
+      }),
+    ).toBeInTheDocument()
+  })
 })
