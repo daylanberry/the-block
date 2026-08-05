@@ -35,7 +35,7 @@ Primary demo journey:
   - damage notes, including an explicit "No reported damage" state
   - title status
   - dealership, city/province, VIN, and lot
-- Bid panel with minimum-bid guidance, inline validation, one confirmation step, and a success state.
+- Focused bid dialog with minimum-bid guidance, inline validation, one confirmation step, and a success state.
 - Bid changes reflected in both the detail view and inventory data during the session.
 - Responsive behavior at phone and desktop widths.
 - Clear local setup and decision documentation in the final README.
@@ -48,6 +48,7 @@ Primary demo journey:
 
 - Backend, database, authentication, accounts, and realtime networking.
 - Seller, admin, checkout, payment, and transportation workflows.
+- Proxy/max bidding, buyer notes, service add-ons, guarantees, and payment-method collection inside the bid flow.
 - Buy Now interaction; only 39 vehicles contain a price and a dead CTA would weaken the prototype.
 - Comparison tooling, pagination, virtualization, advanced filter drawers, and elaborate auction simulation.
 - Revealing the exact reserve price to the buyer.
@@ -65,7 +66,7 @@ Primary demo journey:
 - Normalize the stale seven-day `auction_start` schedule deterministically by mapping its final calendar day to tomorrow and preserving every day/time offset.
 - Label time honestly as `Auction starts` or `Open`; the dataset has no auction end time or timezone, so do not claim an auction is "ending soon."
 - Auctions whose normalized start has passed may accept bids. Sort open vehicles first so the core flow is immediately available.
-- Keep client-side bid state in a small reducer and persist it locally only if that remains simple. Clearly label persistence as prototype-only.
+- Keep client-side bid state in a route-level session hook, with bid transitions handled by a pure domain function. Persist it locally only if that remains simple, and clearly label persistence as prototype-only.
 - Recommended walkthrough vehicle: lot `D-0037` (2025 Volkswagen Tiguan), which has an active bid, clean title, no reported damage, a strong grade, and an unmet reserve.
 
 ## Design Direction
@@ -77,7 +78,7 @@ Use an **industrial inspection-docket** aesthetic rather than a generic marketpl
 - green, amber, and red reserved for trustworthy status meaning
 - condensed automotive typography for headings and tabular bid numbers, paired with a highly readable body face
 - lot-number stamps, inspection-style dividers, and compact metadata that support the auction context
-- generous detail-page hierarchy with a sticky bid rail on desktop and a clear mobile bid action
+- generous detail-page hierarchy with a summary-only sticky bid rail, one clear bid action, and a focused bid dialog
 - restrained motion: one coordinated inventory entrance and a bid-success transition, both respecting reduced-motion preferences
 
 The memorable visual idea should be that the interface feels like an inspection report and live auction board were designed as one product.
@@ -95,7 +96,8 @@ The memorable visual idea should be that the interface feels like an inspection 
   - auction status
   - reserve status
   - minimum-bid calculation and validation
-- A reducer/context for prototype bid state; avoid global-state libraries.
+- A small route-level session hook backed by a pure bid domain transition; avoid context and global-state libraries until multiple nested consumers justify them.
+- One semantic bid dialog shared by the desktop rail and mobile launcher; do not duplicate the form.
 - Vitest and React Testing Library for a few high-value behavioral tests.
 
 Suggested structure:
@@ -172,13 +174,25 @@ Exit: every core detail requirement is present with clear risk hierarchy.
 
 ### Phase 4 — Bid flow
 
-- [ ] Show the correct minimum in CAD.
-- [ ] Validate empty, nonnumeric, and below-minimum bids inline.
-- [ ] Add one review/confirmation step before committing the bid.
-- [ ] Update current bid, count, reserve state, and `Your bid` state immediately.
-- [ ] Add one behavioral test covering a successful bid and visible update.
+- [x] Show the correct minimum in CAD.
+- [x] Validate empty, nonnumeric, and below-minimum bids inline.
+- [x] Add one review/confirmation step before committing the bid.
+- [x] Update current bid, count, reserve state, and `Your bid` state immediately.
+- [x] Add one behavioral test covering a successful bid and visible update.
 
 Exit: the complete browse → inspect → bid journey works without a backend.
+
+### Phase 4A — Focused bid dialog
+
+- [x] Reduce the auction rail to current/starting bid, bid count, reserve state, next valid bid, and one `Place a bid` action.
+- [x] Open one shared semantic dialog from both the desktop rail action and mobile sticky launcher; do not render duplicate bid forms.
+- [x] Move the existing entry → review → success flow into the dialog without changing bid calculations or session-state behavior.
+- [x] Use a bounded centered modal on desktop and a near-full-screen dialog on phones, with no horizontal overflow or obscured controls.
+- [x] Implement the complete focus lifecycle: focus enters the dialog, remains contained, Escape/cancel closes safely, background scrolling is blocked, and focus returns to the launcher.
+- [x] Preserve entered values when moving between entry and review, prevent rejected bids from showing success, and reflect accepted bids in the rail and inventory after closing.
+- [x] Update behavioral tests and manually verify entry, validation, review, cancel, success, Escape, focus return, and 375/768/1440 layouts.
+
+Exit: bidding is visually isolated from the dense vehicle record while retaining one obvious action and the existing guarded bid behavior.
 
 ### Phase 5 — Craft, responsiveness, and accessibility
 
@@ -209,13 +223,14 @@ Treat the conditional stretch and optional motion as the first cuts if scope nee
 - [x] All 200 vehicles are available to browse.
 - [x] Search and body-style filtering work together and can be cleared.
 - [x] Every vehicle has a navigable detail view containing all required information.
-- [ ] First bids and subsequent bids enforce the correct $500 increment rule.
-- [ ] A successful bid updates amount and count and remains visibly attributable to the current prototype user.
+- [x] First bids and subsequent bids enforce the correct $500 increment rule.
+- [x] A successful bid updates amount and count and remains visibly attributable to the current prototype user.
 - [x] No UI exposes an exact reserve amount or offers a nonfunctional Buy Now action.
 - [x] Null and empty data render as deliberate states, not blank space or `null`.
-- [ ] The core journey works at 375px and 1440px without horizontal overflow.
+- [x] The core journey works at 375px and 1440px without horizontal overflow.
+- [x] The desktop and mobile bid launchers open the same dialog, and closing it returns focus to the launcher.
 - [ ] Keyboard focus, labels, contrast, and reduced-motion behavior have been checked.
-- [ ] Tests, type-checking, linting, and production build pass.
+- [x] Tests, type-checking, linting, and production build pass.
 - [ ] The repository is clean and contains no secrets, generated junk, or abandoned UI attempts.
 
 ## Codex + Claude Working Protocol
@@ -236,15 +251,16 @@ Use the tools sequentially, not as competing implementers.
 
 Update this table at each phase boundary; record actual results rather than intended work.
 
-| Phase | Owner | Status | Outcome | Verification | Commit |
-|---|---|---|---|---|---|
-| 0 — Decisions and scaffold | Codex | Complete | Root scaffold, Wouter routes, test foundation, and inspection-docket shell | 2 tests, typecheck, OXLint, build, preview, clean audit, and 375/1440 browser QA | `feat: scaffold React buyer experience` |
-| 1 — Domain and data layer | Codex | Complete | Runtime-validated 200-vehicle catalog, display normalization, rolling seven-day schedule, auction/reserve/bid rules, and inventory query helpers | 32 tests, typecheck, OXLint, build, clean audit, and localhost smoke test | `5c64fa4` |
-| 2 — Inventory experience | Codex | Complete | Searchable 200-lot inventory, live open-first ordering, risk-forward vehicle cards, detail links, and deliberate empty/image-fallback states | 39 tests, typecheck, OXLint, build, clean audit, interaction smoke test, and 375/768/1440 browser QA | `00e2b2a`, `e0db903` |
-| 3 — Vehicle detail experience | Codex | Complete | Vehicle-ID detail routes, null-safe gallery and cards, read-only auction rail, complete specs and seller data, plus explicit risk, conflicting-data, null, and missing-vehicle states | 58 tests, typecheck, OXLint, build, clean audit, gallery interaction smoke test, and 375/768/1440 browser QA | Uncommitted for owner review |
-| 4 — Bid flow | — | Not started | — | — | — |
-| 5 — Craft, responsiveness, accessibility | — | Not started | — | — | — |
-| 6 — Verification and submission package | — | Not started | — | — | — |
+| Phase                                    | Owner | Status      | Outcome                                                                                                                                                                               | Verification                                                                                                                                              | Commit                                  |
+| ---------------------------------------- | ----- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| 0 — Decisions and scaffold               | Codex | Complete    | Root scaffold, Wouter routes, test foundation, and inspection-docket shell                                                                                                            | 2 tests, typecheck, OXLint, build, preview, clean audit, and 375/1440 browser QA                                                                          | `feat: scaffold React buyer experience` |
+| 1 — Domain and data layer                | Codex | Complete    | Runtime-validated 200-vehicle catalog, display normalization, rolling seven-day schedule, auction/reserve/bid rules, and inventory query helpers                                      | 32 tests, typecheck, OXLint, build, clean audit, and localhost smoke test                                                                                 | `5c64fa4`                               |
+| 2 — Inventory experience                 | Codex | Complete    | Searchable 200-lot inventory, live open-first ordering, risk-forward vehicle cards, detail links, and deliberate empty/image-fallback states                                          | 39 tests, typecheck, OXLint, build, clean audit, interaction smoke test, and 375/768/1440 browser QA                                                      | `00e2b2a`, `e0db903`                    |
+| 3 — Vehicle detail experience            | Codex | Complete    | Vehicle-ID detail routes, null-safe gallery and cards, read-only auction rail, complete specs and seller data, plus explicit risk, conflicting-data, null, and missing-vehicle states | 58 tests, typecheck, OXLint, build, clean audit, gallery interaction smoke test, and 375/768/1440 browser QA                                              | `27eafd8`, `af51dc4`                    |
+| 4 — Bid flow                             | Codex | Complete    | Vehicle-ID session state, private reserve derivation, inline entry/review/success flow, guarded bid acceptance, and synchronized `Your bid` state across detail and inventory         | 72 tests, typecheck, OXLint, build, clean audit, invalid/review/success/navigation smoke tests, and 375/768/1440 browser QA                               | Uncommitted for owner review            |
+| 4A — Focused bid dialog                  | Codex | Complete    | Summary-only auction rail, one native entry/review/success dialog, responsive desktop/mobile launchers, guarded acceptance, and complete modal focus/scroll cleanup                   | 77 tests, typecheck, OXLint, build, clean audit, invalid/review/cancel/Escape/success/focus smoke tests, scheduled-lot check, and 375/768/1440 browser QA | Uncommitted for owner review            |
+| 5 — Craft, responsiveness, accessibility | —     | Not started | —                                                                                                                                                                                     | —                                                                                                                                                         | —                                       |
+| 6 — Verification and submission package  | —     | Not started | —                                                                                                                                                                                     | —                                                                                                                                                         | —                                       |
 
 ## Walkthrough Story
 
@@ -252,7 +268,7 @@ The implementation should support this concise narrative:
 
 - **Product decision:** condition and title risk are promoted because wholesale buyers need confidence before price action.
 - **Scope decision:** one excellent buyer journey was prioritized over accounts, backend simulation, or broad marketplace features.
-- **Technical decision:** domain helpers and a small reducer keep business behavior testable without production infrastructure.
+- **Technical decision:** pure domain transitions and a thin route-level session hook keep bid behavior testable without production infrastructure.
 - **Data decision:** stale start dates and missing auction ends were handled transparently instead of inventing false countdowns.
 - **Workflow decision:** AI accelerated implementation and review, while scope, tradeoffs, verification, and final ownership remained explicit.
 

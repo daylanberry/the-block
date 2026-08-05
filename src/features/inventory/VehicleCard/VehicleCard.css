@@ -9,6 +9,11 @@
     transform 180ms ease;
 }
 
+.vehicle-card--your-bid {
+  border-color: var(--color-positive);
+  box-shadow: 0 12px 32px rgb(8 122 87 / 14%);
+}
+
 .vehicle-card__link {
   display: flex;
   height: 100%;
@@ -288,6 +293,10 @@
 
 .vehicle-card__price {
   background: var(--color-canvas);
+}
+
+.vehicle-card--your-bid .vehicle-card__price {
+  background: rgb(8 122 87 / 8%);
 }
 
 .vehicle-card__price > span,

@@ -66,6 +66,9 @@ export function VehicleCard({ vehicle, now }: VehicleCardProps) {
   const lotId = `vehicle-${vehicle.id}-lot`
   const auctionStatus = getAuctionStatus(vehicle.auctionStart, now)
   const hasCurrentBid = vehicle.bid.currentBid !== null
+  const isYourBid =
+    vehicle.bid.yourBid !== null &&
+    vehicle.bid.yourBid === vehicle.bid.currentBid
   const displayedBid = vehicle.bid.currentBid ?? vehicle.startingBid
   const damageCount = vehicle.damageNotes.length
   const damageLabel =
@@ -76,7 +79,9 @@ export function VehicleCard({ vehicle, now }: VehicleCardProps) {
   const reserveTone = getReserveTone(vehicle.bid.reserveStatus)
 
   return (
-    <article className="vehicle-card">
+    <article
+      className={`vehicle-card${isYourBid ? ' vehicle-card--your-bid' : ''}`}
+    >
       <Link
         className="vehicle-card__link"
         href={`/vehicles/${vehicle.id}`}
@@ -142,7 +147,13 @@ export function VehicleCard({ vehicle, now }: VehicleCardProps) {
 
         <footer className="vehicle-card__footer">
           <div className="vehicle-card__price">
-            <span>{hasCurrentBid ? 'Current bid' : 'Starting bid'}</span>
+            <span>
+              {isYourBid
+                ? 'Your bid'
+                : hasCurrentBid
+                  ? 'Current bid'
+                  : 'Starting bid'}
+            </span>
             <strong>
               {formatCurrency(displayedBid)} <small>CAD</small>
             </strong>

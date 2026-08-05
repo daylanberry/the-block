@@ -14,6 +14,7 @@ import './vehicle.css'
 interface VehicleRouteProps {
   vehicle: Vehicle
   now?: Date
+  onPlaceBid: (amount: number, placedAt: Date) => boolean
 }
 
 function getTitleTone(titleStatus: TitleStatus) {
@@ -37,7 +38,11 @@ function getConflictingTitleMention(
     : null
 }
 
-export function VehicleRoute({ vehicle, now: suppliedNow }: VehicleRouteProps) {
+export function VehicleRoute({
+  vehicle,
+  now: suppliedNow,
+  onPlaceBid,
+}: VehicleRouteProps) {
   const referenceTime = useReferenceTime(suppliedNow)
   const auctionStatus = getAuctionStatus(vehicle.auctionStart, referenceTime)
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
@@ -99,7 +104,11 @@ export function VehicleRoute({ vehicle, now: suppliedNow }: VehicleRouteProps) {
           />
         </div>
 
-        <AuctionRail vehicle={vehicle} now={referenceTime} />
+        <AuctionRail
+          vehicle={vehicle}
+          now={referenceTime}
+          onPlaceBid={(amount) => onPlaceBid(amount, referenceTime)}
+        />
 
         <div className="vehicle-detail__sections">
           <section

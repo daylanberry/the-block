@@ -4,11 +4,13 @@ import {
   formatCurrency,
 } from '../../../domain/formatters'
 import type { ReserveStatus, Vehicle } from '../../../domain/types'
+import { BidDialog } from '../../bidding/BidDialog/BidDialog'
 import './AuctionRail.css'
 
 interface AuctionRailProps {
   vehicle: Vehicle
   now: Date
+  onPlaceBid: (amount: number) => boolean
 }
 
 function getReserveTone(reserveStatus: ReserveStatus) {
@@ -19,9 +21,16 @@ function getReserveTone(reserveStatus: ReserveStatus) {
   return reserveStatus === 'Reserve not met' ? 'warning' : 'neutral'
 }
 
-export function AuctionRail({ vehicle, now }: AuctionRailProps) {
+export function AuctionRail({
+  vehicle,
+  now,
+  onPlaceBid,
+}: AuctionRailProps) {
   const auctionStatus = getAuctionStatus(vehicle.auctionStart, now)
   const hasCurrentBid = vehicle.bid.currentBid !== null
+  const isYourBid =
+    vehicle.bid.yourBid !== null &&
+    vehicle.bid.yourBid === vehicle.bid.currentBid
   const displayedBid = vehicle.bid.currentBid ?? vehicle.startingBid
   const minimumBid = getMinimumBid({
     startingBid: vehicle.startingBid,
@@ -30,7 +39,11 @@ export function AuctionRail({ vehicle, now }: AuctionRailProps) {
   const reserveTone = getReserveTone(vehicle.bid.reserveStatus)
 
   return (
-    <aside className="auction-rail" id="auction-panel" aria-labelledby="auction-title">
+    <aside
+      className="auction-rail"
+      id="auction-panel"
+      aria-labelledby="auction-title"
+    >
       <header
         className={`auction-rail__header auction-rail__header--${auctionStatus.toLowerCase()}`}
       >
@@ -38,15 +51,21 @@ export function AuctionRail({ vehicle, now }: AuctionRailProps) {
         <h2 id="auction-title">
           {auctionStatus === 'Open' ? 'Open for bidding' : 'Scheduled'}
         </h2>
-        <span>
-          {auctionStatus === 'Open'
-            ? 'Buyer access active'
-            : 'Bid entry unavailable'}
-        </span>
+        {auctionStatus === 'Scheduled' ? (
+          <span>Bid entry unavailable</span>
+        ) : isYourBid ? (
+          <span>You hold the current bid</span>
+        ) : null}
       </header>
 
       <div className="auction-rail__price">
-        <span>{hasCurrentBid ? 'Current bid' : 'Starting bid'}</span>
+        <span>
+          {isYourBid
+            ? 'Your bid'
+            : hasCurrentBid
+              ? 'Current bid'
+              : 'Starting bid'}
+        </span>
         <strong>{formatCurrency(displayedBid)}</strong>
         <small>CAD</small>
         <p>
@@ -84,7 +103,13 @@ export function AuctionRail({ vehicle, now }: AuctionRailProps) {
         <p className="auction-rail__notice">
           This lot remains read-only until its scheduled auction opens.
         </p>
-      ) : null}
+      ) : (
+        <BidDialog
+          key={vehicle.id}
+          vehicle={vehicle}
+          onPlaceBid={onPlaceBid}
+        />
+      )}
     </aside>
   )
 }

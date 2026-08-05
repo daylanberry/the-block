@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { Router } from 'wouter'
 import { memoryLocation } from 'wouter/memory-location'
@@ -14,7 +14,11 @@ function renderVehicle(vehicle = makeVehicle()) {
 
   return render(
     <Router hook={hook}>
-      <VehicleRoute vehicle={vehicle} now={referenceTime} />
+      <VehicleRoute
+        vehicle={vehicle}
+        now={referenceTime}
+        onPlaceBid={() => true}
+      />
     </Router>,
   )
 }
@@ -65,11 +69,22 @@ describe('vehicle detail route', () => {
     expect(within(auctionRail).getByText('$29,500')).toBeInTheDocument()
     expect(within(auctionRail).getByText('8 bids')).toBeInTheDocument()
     expect(within(auctionRail).getByText('Reserve not met')).toBeInTheDocument()
-    expect(within(auctionRail).getByText('$30,000')).toBeInTheDocument()
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(within(auctionRail).getAllByText('$30,000').length).toBeGreaterThan(0)
+    const bidTrigger = within(auctionRail).getByRole('button', {
+      name: 'Place a bid',
+    })
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    fireEvent.click(bidTrigger)
+
+    const bidDialog = screen.getByRole('dialog', { name: 'Place a bid' })
     expect(
-      screen.queryByRole('button', { name: 'Place bid' }),
-    ).not.toBeInTheDocument()
+      within(bidDialog).getByRole('textbox', { name: 'Your bid (CAD)' }),
+    ).toBeInTheDocument()
+    expect(
+      within(bidDialog).getByRole('button', { name: 'Review bid' }),
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole('note', { name: 'Conflicting title data' }),
     ).not.toBeInTheDocument()
@@ -106,6 +121,11 @@ describe('vehicle detail route', () => {
         'This lot remains read-only until its scheduled auction opens.',
       ),
     ).toBeInTheDocument()
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Place a bid' }),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it.each([

@@ -71,17 +71,19 @@ The detail page presents, in order:
 6. Vehicle specifications and odometer.
 7. Dealership, VIN, and lot details.
 
-At desktop widths, use a primary content column and a sticky bid rail. At mobile widths, use one content column and a single sticky action that moves focus to the bid panel; do not duplicate the form.
+At desktop widths, use a primary content column and a sticky summary bid rail. At mobile widths, use one content column and a single sticky action that opens the shared bid dialog; do not duplicate the form.
 
 ### Bid flow
 
-Use a three-state bid panel rather than a separate multi-page flow:
+Use one shared three-state bid dialog rather than an embedded form or separate multi-page flow:
 
 1. **Entry:** show the minimum bid, currency, input, and inline validation.
 2. **Review:** replace the entry controls with a concise bid summary and explicit confirm/cancel actions.
 3. **Success:** acknowledge the bid and show the updated amount, count, reserve state, and `Your bid` label.
 
 The confirmation control should state the amount, such as `Place $24,500 bid`, rather than using a vague `Confirm` label.
+
+Keep the dialog focused on the bid itself. Do not add max/proxy bidding, notes, services, transportation, guarantees, or payment collection. On close, restore focus to the exact desktop or mobile launcher that opened it.
 
 ## Content Rules
 
@@ -173,6 +175,7 @@ Dense metadata may use the lower half of the scale. Page sections and major read
 
 - Use semantic headings, landmarks, buttons, links, labels, and form errors.
 - Associate validation messages with the bid input and move focus appropriately when state changes.
+- Keep modal focus contained, support Escape and visible cancellation, prevent background scrolling, and return focus to the invoking bid action.
 - Give vehicle images useful alt text; decorative thumbnails may use empty alt text when the same vehicle is already named nearby.
 - Ensure all text and controls meet WCAG AA contrast.
 - Make the gallery, filters, navigation, and complete bid flow keyboard-operable.

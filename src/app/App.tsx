@@ -2,22 +2,29 @@ import { Route, Switch } from 'wouter'
 
 import { AppShell } from '../components/AppShell'
 import { findVehicleById } from '../domain/inventory'
-import { vehicles } from '../domain/vehicles'
+import { useBidSessionState } from '../features/bidding/useBidSessionState'
 import { InventoryRoute } from '../features/inventory/InventoryRoute'
 import { VehicleRoute } from '../features/vehicle/VehicleRoute'
 import { NotFoundRoute } from './NotFoundRoute'
 
-export function App() {
+function AppRoutes() {
+  const { vehicles, placeBid } = useBidSessionState()
+
   return (
     <AppShell>
       <Switch>
-        <Route path="/">{() => <InventoryRoute />}</Route>
+        <Route path="/">{() => <InventoryRoute inventory={vehicles} />}</Route>
         <Route path="/vehicles/:vehicleId">
           {(params) => {
             const vehicle = findVehicleById(vehicles, params.vehicleId)
 
             return vehicle ? (
-              <VehicleRoute vehicle={vehicle} />
+              <VehicleRoute
+                vehicle={vehicle}
+                onPlaceBid={(amount, placedAt) =>
+                  placeBid(vehicle.id, amount, placedAt)
+                }
+              />
             ) : (
               <NotFoundRoute
                 eyebrow="404 / Vehicle lookup"
@@ -31,4 +38,8 @@ export function App() {
       </Switch>
     </AppShell>
   )
+}
+
+export function App() {
+  return <AppRoutes />
 }
