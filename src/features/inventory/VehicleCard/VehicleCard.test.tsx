@@ -97,6 +97,22 @@ describe('vehicle card', () => {
     ).toHaveAttribute('href', '/vehicles/vehicle-1')
   })
 
+  it('shows a stable loading treatment until the card photo is ready', () => {
+    renderCard()
+
+    const image = screen.getByRole('img', {
+      name: /2025 volkswagen tiguan sel r-line, lot d-0037/i,
+    })
+
+    expect(screen.getByText('Loading photo')).toBeInTheDocument()
+    expect(image).not.toHaveClass('is-loaded')
+
+    fireEvent.load(image)
+
+    expect(screen.queryByText('Loading photo')).not.toBeInTheDocument()
+    expect(image).toHaveClass('is-loaded')
+  })
+
   it('uses the image fallback when no usable photo is supplied', () => {
     renderCard(makeVehicle({ images: [] }))
 

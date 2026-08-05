@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { makeVehicle } from '../../../test/vehicleFactory'
@@ -25,20 +25,61 @@ function renderDialog(
 }
 
 describe('bid dialog', () => {
-  it('uses two responsive launchers for one modal and focuses bid entry', () => {
-    const { dialog, trigger, vehicle } = renderDialog()
+  it('uses one in-flow and one portaled launcher for one modal', () => {
+    const { container, dialog, trigger, vehicle } = renderDialog()
     const dialogId = `bid-dialog-${vehicle.id}`
+    const mobileLauncher = document.querySelector(
+      '.bid-dialog__mobile-launcher',
+    )
 
     expect(document.querySelectorAll('dialog')).toHaveLength(1)
     expect(document.querySelectorAll(`[aria-controls="${dialogId}"]`)).toHaveLength(
       2,
     )
     expect(within(dialog).getAllByRole('textbox')).toHaveLength(1)
+    expect(mobileLauncher).toBeInTheDocument()
+    expect(container.contains(mobileLauncher)).toBe(false)
+    expect(mobileLauncher?.parentElement).toBe(document.body)
+    expect(container.contains(dialog)).toBe(false)
     expect(
       within(dialog).getByRole('textbox', { name: 'Your bid (CAD)' }),
     ).toHaveFocus()
     expect(trigger).toHaveAttribute('aria-expanded', 'true')
     expect(document.documentElement.style.overflow).toBe('hidden')
+  })
+
+  it('softens the mobile launcher only while the buyer is scrolling', () => {
+    vi.useFakeTimers()
+    render(<BidDialog vehicle={makeVehicle()} onPlaceBid={vi.fn()} />)
+
+    const mobileLauncher = document.querySelector(
+      '.bid-dialog__mobile-launcher',
+    )
+
+    expect(mobileLauncher).not.toHaveClass(
+      'bid-dialog__mobile-launcher--scrolling',
+    )
+
+    fireEvent.scroll(window)
+
+    expect(mobileLauncher).toHaveClass(
+      'bid-dialog__mobile-launcher--scrolling',
+    )
+
+    act(() => vi.advanceTimersByTime(150))
+    fireEvent.scroll(window)
+
+    act(() => vi.advanceTimersByTime(150))
+    expect(mobileLauncher).toHaveClass(
+      'bid-dialog__mobile-launcher--scrolling',
+    )
+
+    act(() => vi.advanceTimersByTime(30))
+    expect(mobileLauncher).not.toHaveClass(
+      'bid-dialog__mobile-launcher--scrolling',
+    )
+
+    vi.useRealTimers()
   })
 
   it.each([

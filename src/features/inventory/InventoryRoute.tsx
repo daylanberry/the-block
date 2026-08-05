@@ -55,7 +55,9 @@ export function InventoryRoute({
       <header className="inventory-page__header">
         <div className="inventory-page__title-block">
           <p className="eyebrow">Buyer inventory / Canada</p>
-          <h1 id="inventory-title">Wholesale inventory</h1>
+          <h1 id="inventory-title" tabIndex={-1}>
+            Wholesale inventory
+          </h1>
           <p>
             Compare condition, title risk, and bid position across{' '}
             {inventory.length} vehicles.

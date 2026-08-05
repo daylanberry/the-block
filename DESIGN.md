@@ -104,19 +104,19 @@ The product should feel like an **industrial inspection docket joined with a liv
 
 Use these as initial implementation tokens and adjust only when contrast testing requires it:
 
-| Role | Token | Value | Use |
-|---|---|---:|---|
-| Canvas | `--color-canvas` | `#F4F7FB` | Cool neutral page background |
-| Surface | `--color-surface` | `#FFFFFF` | Cards and detail sections |
-| Ink | `--color-ink` | `#10233F` | Primary text and framing |
-| Muted | `--color-muted` | `#5B6878` | Secondary information |
-| Rule | `--color-rule` | `#CBD6E4` | Dividers and boundaries |
-| Brand | `--color-brand` | `#0B61F3` | Navigation, identity, and primary action |
-| Brand deep | `--color-brand-deep` | `#063478` | Dark framing and the logo segment |
-| Positive | `--color-positive` | `#087A57` | Confirmed and reserve-met states |
-| Warning | `--color-warning` | `#8A5700` | Reserve-not-met and caution states |
-| Critical | `--color-critical` | `#B8322A` | Salvage and validation errors |
-| Risk accent | `--color-risk-accent` | `#E05A2A` | Small high-risk emphasis only |
+| Role        | Token                 |     Value | Use                                      |
+| ----------- | --------------------- | --------: | ---------------------------------------- |
+| Canvas      | `--color-canvas`      | `#F4F7FB` | Cool neutral page background             |
+| Surface     | `--color-surface`     | `#FFFFFF` | Cards and detail sections                |
+| Ink         | `--color-ink`         | `#10233F` | Primary text and framing                 |
+| Muted       | `--color-muted`       | `#5B6878` | Secondary information                    |
+| Rule        | `--color-rule`        | `#CBD6E4` | Dividers and boundaries                  |
+| Brand       | `--color-brand`       | `#0B61F3` | Navigation, identity, and primary action |
+| Brand deep  | `--color-brand-deep`  | `#063478` | Dark framing and the logo segment        |
+| Positive    | `--color-positive`    | `#087A57` | Confirmed and reserve-met states         |
+| Warning     | `--color-warning`     | `#8A5700` | Reserve-not-met and caution states       |
+| Critical    | `--color-critical`    | `#B8322A` | Salvage and validation errors            |
+| Risk accent | `--color-risk-accent` | `#E05A2A` | Small high-risk emphasis only            |
 
 Use white text on brand-blue actions. Green communicates success rather than every clickable action; orange and red are reserved for risk. Use the supplied broken-ring mark instead of inventing a second logo. Status must always include text or an icon; color alone never carries meaning.
 
@@ -129,8 +129,10 @@ Use white text on brand-blue actions. Green communicates success rather than eve
 
 ### Shape and depth
 
-- Prefer square or lightly rounded corners in the `2px–6px` range.
-- Use thin rules and surface contrast before adding shadows.
+- Use a deliberate shape hierarchy: keep inspection records, status cells, and lot dockets angular in the `2px–4px` range; allow interactive and elevated surfaces in the `4px–10px` range.
+- Use broad, low-opacity shadows and subtle tonal gradients to separate raised controls, cards, statistics, and dialogs from the canvas. Reserve stronger elevation for active or modal layers.
+- Soften the search/filter deck, inventory cards, statistics board, and bid dialog without rounding every container.
+- Pair shadows with thin rules and surface contrast so information boundaries remain clear.
 - Avoid excessive pills. Reserve them for compact filters and true statuses.
 - Use lot-number stamps and inspection dividers only where they improve hierarchy.
 

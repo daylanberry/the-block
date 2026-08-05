@@ -5,7 +5,11 @@ import {
   formatAuctionStart,
   formatOdometer,
 } from '../../domain/formatters'
-import type { TitleStatus, Vehicle } from '../../domain/types'
+import {
+  getConflictingTitleMention,
+  getTitleTone,
+} from '../../domain/statusTone'
+import type { Vehicle } from '../../domain/types'
 import { useReferenceTime } from '../../hooks/useReferenceTime'
 import { AuctionRail } from './AuctionRail/AuctionRail'
 import { VehicleGallery } from './VehicleGallery/VehicleGallery'
@@ -15,27 +19,6 @@ interface VehicleRouteProps {
   vehicle: Vehicle
   now?: Date
   onPlaceBid: (amount: number, placedAt: Date) => boolean
-}
-
-function getTitleTone(titleStatus: TitleStatus) {
-  if (titleStatus === 'Clean') {
-    return 'positive'
-  }
-
-  return titleStatus === 'Rebuilt' ? 'warning' : 'critical'
-}
-
-function getConflictingTitleMention(
-  titleStatus: TitleStatus,
-  conditionReport: string,
-) {
-  const mentionedStatus = (['Clean', 'Rebuilt', 'Salvage'] as const).find(
-    (status) => new RegExp(`\\b${status} title\\b`, 'i').test(conditionReport),
-  )
-
-  return mentionedStatus && mentionedStatus !== titleStatus
-    ? mentionedStatus
-    : null
 }
 
 export function VehicleRoute({
@@ -62,9 +45,15 @@ export function VehicleRoute({
       <header className="vehicle-detail__hero">
         <div className="vehicle-detail__identity">
           <p className="eyebrow">Buyer inspection / {vehicle.bodyStyle}</p>
-          <h1 id="vehicle-title">{vehicleName}</h1>
+          <h1 id="vehicle-title" tabIndex={-1}>
+            {vehicleName}
+          </h1>
           <p className="vehicle-detail__trim">{vehicle.trim}</p>
-          <div className="vehicle-detail__meta" aria-label="Vehicle summary">
+          <div
+            className="vehicle-detail__meta"
+            role="group"
+            aria-label="Vehicle summary"
+          >
             <span>
               {vehicle.city}, {vehicle.province}
             </span>

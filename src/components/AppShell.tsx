@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 
 interface AppShellProps {
@@ -7,7 +7,18 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const [location] = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+  const previousLocationRef = useRef(location);
   const isInventoryActive = location === "/";
+
+  useEffect(() => {
+    if (previousLocationRef.current === location) {
+      return;
+    }
+
+    previousLocationRef.current = location;
+    mainRef.current?.querySelector<HTMLHeadingElement>("h1")?.focus();
+  }, [location]);
 
   return (
     <div className="app-frame">
@@ -48,7 +59,7 @@ export function AppShell({ children }: AppShellProps) {
             </Link>
           </nav>
 
-          <div className="header-context" aria-label="Workspace context">
+          <div className="header-context">
             <span className="header-context__signal" aria-hidden="true" />
             <span className="header-context__label">Buyer view</span>
             <strong>CAD</strong>
@@ -56,7 +67,12 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </header>
 
-      <main className="app-main" id="main-content">
+      <main
+        ref={mainRef}
+        className="app-main"
+        id="main-content"
+        tabIndex={-1}
+      >
         {children}
       </main>
 

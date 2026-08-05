@@ -17,7 +17,9 @@ export function NotFoundRoute({
   return (
     <section className="route-message" aria-labelledby="not-found-title">
       <p className="eyebrow">{eyebrow}</p>
-      <h1 id="not-found-title">{title}</h1>
+      <h1 id="not-found-title" tabIndex={-1}>
+        {title}
+      </h1>
       <p>{description}</p>
       <Link className="text-link" href="/">
         <span aria-hidden="true">←</span> {linkLabel}

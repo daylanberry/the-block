@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { VehicleGallery } from './VehicleGallery'
 
@@ -15,8 +15,79 @@ const defaultProps = {
 }
 
 describe('vehicle gallery', () => {
+  it('keeps the gallery frame stable while its selected photo loads', () => {
+    render(<VehicleGallery {...defaultProps} />)
+
+    const image = screen.getByRole('img', {
+      name: '2025 Volkswagen Tiguan SE R-Line, photo 1 of 3',
+    })
+
+    expect(screen.getByText('Loading inspection photo')).toBeInTheDocument()
+    expect(image).not.toHaveClass('is-loaded')
+
+    fireEvent.load(image)
+
+    expect(
+      screen.queryByText('Loading inspection photo'),
+    ).not.toBeInTheDocument()
+    expect(image).toHaveClass('is-loaded')
+  })
+
+  it('shows a cached primary photo that is already complete', () => {
+    const completeSpy = vi
+      .spyOn(HTMLImageElement.prototype, 'complete', 'get')
+      .mockReturnValue(true)
+    const naturalWidthSpy = vi
+      .spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get')
+      .mockReturnValue(800)
+
+    try {
+      render(<VehicleGallery {...defaultProps} />)
+
+      expect(
+        screen.getByRole('img', {
+          name: '2025 Volkswagen Tiguan SE R-Line, photo 1 of 3',
+        }),
+      ).toHaveClass('is-loaded')
+      expect(
+        screen.queryByText('Loading inspection photo'),
+      ).not.toBeInTheDocument()
+    } finally {
+      completeSpy.mockRestore()
+      naturalWidthSpy.mockRestore()
+    }
+  })
+
+  it('waits for the selected primary image even when its thumbnail is ready', () => {
+    const { container } = render(<VehicleGallery {...defaultProps} />)
+    const thumbnails = container.querySelectorAll(
+      '.vehicle-gallery__thumbnails img',
+    )
+
+    fireEvent.load(thumbnails[1])
+    fireEvent.click(
+      screen.getByRole('button', { name: 'View photo 2 of 3' }),
+    )
+
+    const selectedImage = screen.getByRole('img', {
+      name: '2025 Volkswagen Tiguan SE R-Line, photo 2 of 3',
+    })
+    expect(screen.getByText('Loading inspection photo')).toBeInTheDocument()
+    expect(selectedImage).not.toHaveClass('is-loaded')
+
+    fireEvent.load(selectedImage)
+
+    expect(
+      screen.queryByText('Loading inspection photo'),
+    ).not.toBeInTheDocument()
+  })
+
   it('lets the buyer select a supplied photo', () => {
     render(<VehicleGallery {...defaultProps} />)
+
+    expect(
+      screen.getByRole('group', { name: 'Vehicle photos' }),
+    ).toBeInTheDocument()
 
     fireEvent.click(
       screen.getByRole('button', { name: 'View photo 2 of 3' }),

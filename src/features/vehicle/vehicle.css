@@ -1,6 +1,5 @@
 .vehicle-detail {
   padding: clamp(1.5rem, 3vw, 3rem) 0 clamp(5rem, 9vw, 8rem);
-  animation: shell-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .vehicle-detail__back {
@@ -91,8 +90,10 @@
   color: var(--color-surface);
   background: var(--color-brand-deep);
   border-top: 5px solid var(--color-brand);
+  border-radius: var(--radius-sm);
   grid-template-columns: 0.88fr 1.12fr;
   box-shadow: var(--shadow-lifted);
+  overflow: hidden;
 }
 
 .vehicle-detail__lot,
@@ -184,7 +185,9 @@
   min-width: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-rule-dark);
-  box-shadow: 0 12px 32px rgb(16 35 63 / 8%);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
 }
 
 .detail-section__heading {
@@ -603,7 +606,7 @@
 @media (max-width: 40rem) {
   .vehicle-detail {
     padding-top: var(--space-6);
-    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+    padding-bottom: var(--space-16);
   }
 
   .vehicle-detail__hero {

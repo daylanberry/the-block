@@ -7,7 +7,8 @@ import {
   formatCurrency,
   formatOdometer,
 } from '../../../domain/formatters'
-import type { ReserveStatus, TitleStatus, Vehicle } from '../../../domain/types'
+import { getReserveTone, getTitleTone } from '../../../domain/statusTone'
+import type { Vehicle } from '../../../domain/types'
 import './VehicleCard.css'
 
 interface VehicleCardProps {
@@ -15,24 +16,9 @@ interface VehicleCardProps {
   now: Date
 }
 
-function getTitleTone(titleStatus: TitleStatus) {
-  if (titleStatus === 'Clean') {
-    return 'positive'
-  }
-
-  return titleStatus === 'Rebuilt' ? 'warning' : 'critical'
-}
-
-function getReserveTone(reserveStatus: ReserveStatus) {
-  if (reserveStatus === 'Reserve met') {
-    return 'positive'
-  }
-
-  return reserveStatus === 'Reserve not met' ? 'warning' : 'neutral'
-}
-
 function VehicleImage({ vehicle }: Pick<VehicleCardProps, 'vehicle'>) {
   const [hasError, setHasError] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`
   const primaryImage = vehicle.images[0]
 
@@ -44,20 +30,27 @@ function VehicleImage({ vehicle }: Pick<VehicleCardProps, 'vehicle'>) {
         aria-label={`Photo unavailable for ${vehicleName}`}
       >
         <span aria-hidden="true">Photo / unavailable</span>
-        <strong>{vehicle.lot}</strong>
       </div>
     )
   }
 
   return (
-    <img
-      className="vehicle-card__image"
-      src={primaryImage}
-      alt={`${vehicleName}, lot ${vehicle.lot}`}
-      loading="lazy"
-      decoding="async"
-      onError={() => setHasError(true)}
-    />
+    <>
+      {!isLoaded ? (
+        <span className="vehicle-card__image-loading" aria-hidden="true">
+          Loading photo
+        </span>
+      ) : null}
+      <img
+        className={`vehicle-card__image${isLoaded ? ' is-loaded' : ''}`}
+        src={primaryImage}
+        alt={`${vehicleName}, lot ${vehicle.lot}`}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setIsLoaded(true)}
+        onError={() => setHasError(true)}
+      />
+    </>
   )
 }
 
@@ -81,6 +74,7 @@ export function VehicleCard({ vehicle, now }: VehicleCardProps) {
   return (
     <article
       className={`vehicle-card${isYourBid ? ' vehicle-card--your-bid' : ''}`}
+      aria-labelledby={`${titleId} ${lotId}`}
     >
       <Link
         className="vehicle-card__link"
@@ -92,21 +86,20 @@ export function VehicleCard({ vehicle, now }: VehicleCardProps) {
           <span className="vehicle-card__lot" id={lotId}>
             Lot {vehicle.lot}
           </span>
-        </div>
-
-        <div
-          className={`vehicle-card__auction vehicle-card__auction--${auctionStatus.toLowerCase()}`}
-        >
-          <strong>
-            {auctionStatus === 'Open' ? 'Open for bidding' : 'Auction starts'}
-          </strong>
-          {auctionStatus === 'Scheduled' ? (
-            <time dateTime={vehicle.auctionStart.toISOString()}>
-              {formatAuctionStart(vehicle.auctionStart)}
-            </time>
-          ) : (
-            <span>Buyer access active</span>
-          )}
+          <div
+            className={`vehicle-card__auction vehicle-card__auction--${auctionStatus.toLowerCase()}`}
+          >
+            <strong>
+              {auctionStatus === 'Open' ? 'Open for bidding' : 'Auction starts'}
+            </strong>
+            {auctionStatus === 'Scheduled' ? (
+              <time dateTime={vehicle.auctionStart.toISOString()}>
+                {formatAuctionStart(vehicle.auctionStart)}
+              </time>
+            ) : (
+              <span>Bid entry available</span>
+            )}
+          </div>
         </div>
 
         <div className="vehicle-card__body">

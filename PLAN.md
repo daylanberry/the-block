@@ -196,10 +196,20 @@ Exit: bidding is visually isolated from the dense vehicle record while retaining
 
 ### Phase 5 — Craft, responsiveness, and accessibility
 
-- [ ] Review 375px, 768px, and 1440px layouts.
+- [x] Review 375px, 768px, and 1440px layouts.
+- [x] Modernize the surface hierarchy with selective `4px–10px` corner radii, broad low-opacity shadows, subtle tonal gradients, and hover/focus elevation.
+- [x] Soften the search/filter deck, inventory cards, statistics board, and bid dialog while keeping inspection records, status cells, and lot dockets angular.
+- [x] Use OPENLANE as a reference for depth and polish without copying its marketing layout or weakening the condition-first auction hierarchy.
+- [x] Compress the desktop hero by roughly 25% so the filters and meaningful inventory content appear above the fold at a 900px-tall viewport; reduce heading scale, vertical padding, and tally-board weight without weakening the page identity.
+- [x] Make inventory cards more photo-first with a 16:9 or 16:10 media frame, tighter body spacing, and a target desktop height around `600px–650px` while retaining condition, title, damage, and bid context.
+- [x] Replace the repeated full-width cobalt auction strip with a compact status badge or status row; reserve solid cobalt primarily for selected filters, focus, and primary actions.
+- [x] Simplify card framing by choosing a light border or soft elevation instead of stacking strong borders, shadows, gradients, and dense internal rules; remove nonessential dividers from the card body and footer.
+- [x] Rework the inventory controls as a softer search surface with distinct rounded filter chips rather than one heavily outlined form panel.
+- [x] Limit condensed all-caps typography to major headings, vehicle names, lot numbers, and prices; use the body face and sentence case for supporting labels where it improves scanning.
 - [ ] Verify keyboard navigation, visible focus, semantic headings/forms, labels, and useful image alt text.
-- [ ] Add loading/fallback treatment and reduced-motion behavior.
-- [ ] Remove visual noise, broken promises, stale experiments, and duplicated code.
+- [x] Add loading and fallback treatment.
+- [ ] Verify reduced-motion behavior with OS/browser preference emulation.
+- [x] Remove visual noise, broken promises, stale experiments, and duplicated code.
 
 Exit: the experience feels deliberate, readable, and usable rather than merely complete.
 
@@ -259,7 +269,7 @@ Update this table at each phase boundary; record actual results rather than inte
 | 3 — Vehicle detail experience            | Codex | Complete    | Vehicle-ID detail routes, null-safe gallery and cards, read-only auction rail, complete specs and seller data, plus explicit risk, conflicting-data, null, and missing-vehicle states | 58 tests, typecheck, OXLint, build, clean audit, gallery interaction smoke test, and 375/768/1440 browser QA                                              | `27eafd8`, `af51dc4`                    |
 | 4 — Bid flow                             | Codex | Complete    | Vehicle-ID session state, private reserve derivation, inline entry/review/success flow, guarded bid acceptance, and synchronized `Your bid` state across detail and inventory         | 72 tests, typecheck, OXLint, build, clean audit, invalid/review/success/navigation smoke tests, and 375/768/1440 browser QA                               | Uncommitted for owner review            |
 | 4A — Focused bid dialog                  | Codex | Complete    | Summary-only auction rail, one native entry/review/success dialog, responsive desktop/mobile launchers, guarded acceptance, and complete modal focus/scroll cleanup                   | 77 tests, typecheck, OXLint, build, clean audit, invalid/review/cancel/Escape/success/focus smoke tests, scheduled-lot check, and 375/768/1440 browser QA | Uncommitted for owner review            |
-| 5 — Craft, responsiveness, accessibility | —     | Not started | —                                                                                                                                                                                     | —                                                                                                                                                         | —                                       |
+| 5 — Craft, responsiveness, accessibility | Codex | In progress | Softened surface hierarchy, cached-gallery loading fix, route-heading focus, stronger contrast, explicit content groups, corrected mobile launcher clearance, centralized status rules, compressed inventory hero, photo-first cards, compact auction overlays, and independent filter chips | 90 tests, typecheck, OXLint, build, diff check, and 375/641/768/1440 Browser QA; desktop cards begin at 586px and measure about 605px; dialog behavior, fallback states, image loading, controls, and overflow checked; native Tab traversal, live broken-image interception, and reduced-motion emulation remain pending | Uncommitted for owner review            |
 | 6 — Verification and submission package  | —     | Not started | —                                                                                                                                                                                     | —                                                                                                                                                         | —                                       |
 
 ## Walkthrough Story

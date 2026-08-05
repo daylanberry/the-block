@@ -23,6 +23,8 @@ type BidDialogStep = "entry" | "review" | "success";
 
 export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobileLauncherScrolling, setIsMobileLauncherScrolling] =
+    useState(false);
   const [step, setStep] = useState<BidDialogStep>("entry");
   const [rawAmount, setRawAmount] = useState("");
   const [reviewAmount, setReviewAmount] = useState<number | null>(null);
@@ -33,6 +35,7 @@ export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
   const successHeadingRef = useRef<HTMLHeadingElement>(null);
   const activeTriggerRef = useRef<HTMLButtonElement | null>(null);
   const shouldFocusEntryRef = useRef(false);
+  const scrollEndTimerRef = useRef<number | null>(null);
   const dialogId = `bid-dialog-${vehicle.id}`;
   const titleId = `${dialogId}-${step}-title`;
   const contextId = `${dialogId}-context`;
@@ -47,6 +50,33 @@ export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
   const displayedBidLabel =
     vehicle.bid.currentBid === null ? "Starting bid" : "Current bid";
+
+  useEffect(() => {
+    function handleScroll() {
+      setIsMobileLauncherScrolling(true);
+
+      if (scrollEndTimerRef.current !== null) {
+        window.clearTimeout(scrollEndTimerRef.current);
+      }
+
+      scrollEndTimerRef.current = window.setTimeout(() => {
+        setIsMobileLauncherScrolling(false);
+        scrollEndTimerRef.current = null;
+      }, 180);
+    }
+
+    window.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+
+      if (scrollEndTimerRef.current !== null) {
+        window.clearTimeout(scrollEndTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOpen) {
@@ -199,7 +229,11 @@ export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
       : createPortal(
           <>
             <button
-              className="bid-dialog__mobile-launcher"
+              className={`bid-dialog__mobile-launcher${
+                isMobileLauncherScrolling
+                  ? " bid-dialog__mobile-launcher--scrolling"
+                  : ""
+              }`}
               type="button"
               aria-label="Place a bid"
               aria-haspopup="dialog"

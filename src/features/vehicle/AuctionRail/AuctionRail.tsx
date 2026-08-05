@@ -3,7 +3,8 @@ import {
   formatAuctionStart,
   formatCurrency,
 } from '../../../domain/formatters'
-import type { ReserveStatus, Vehicle } from '../../../domain/types'
+import { getReserveTone } from '../../../domain/statusTone'
+import type { Vehicle } from '../../../domain/types'
 import { BidDialog } from '../../bidding/BidDialog/BidDialog'
 import './AuctionRail.css'
 
@@ -11,14 +12,6 @@ interface AuctionRailProps {
   vehicle: Vehicle
   now: Date
   onPlaceBid: (amount: number) => boolean
-}
-
-function getReserveTone(reserveStatus: ReserveStatus) {
-  if (reserveStatus === 'Reserve met') {
-    return 'positive'
-  }
-
-  return reserveStatus === 'Reserve not met' ? 'warning' : 'neutral'
 }
 
 export function AuctionRail({
