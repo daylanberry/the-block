@@ -3,17 +3,27 @@ import { describe, expect, it } from 'vitest'
 import { Router } from 'wouter'
 import { memoryLocation } from 'wouter/memory-location'
 
+import { makeBid } from '../../../test/bidFactory'
 import { makeVehicle } from '../../../test/vehicleFactory'
 import { VehicleCard } from './VehicleCard'
 
 const referenceTime = new Date(2026, 7, 4, 12)
+const userId = 'user-1'
 
-function renderCard(vehicle = makeVehicle()) {
+function renderCard(
+  vehicle = makeVehicle(),
+  userBid?: ReturnType<typeof makeBid>,
+) {
   const { hook } = memoryLocation({ path: '/', static: true })
 
   return render(
     <Router hook={hook}>
-      <VehicleCard vehicle={vehicle} now={referenceTime} />
+      <VehicleCard
+        vehicle={vehicle}
+        now={referenceTime}
+        userBid={userBid}
+        userId={userId}
+      />
     </Router>,
   )
 }
@@ -74,6 +84,52 @@ describe('vehicle card', () => {
 
     expect(screen.getByText('Clean')).toBeInTheDocument()
     expect(screen.getByText('1 reported issue')).toBeInTheDocument()
+  })
+
+  it('shows when the buyer holds the current bid', () => {
+    renderCard(
+      makeVehicle({
+        bid: {
+          currentBid: { amount: 30_000, userId },
+          bidCount: 9,
+        },
+      }),
+    )
+
+    expect(screen.getByText(/You hold the current bid · 9 bids/)).toBeVisible()
+    expect(screen.getByText('Current bid is yours')).toBeVisible()
+    expect(screen.getByText('Current bid')).toBeVisible()
+    expect(screen.getByText('$30,000', { exact: false })).toBeVisible()
+    expect(screen.getByRole('article')).toHaveClass('vehicle-card--your-bid')
+    expect(
+      screen.getByRole('link', {
+        name: '2025 Volkswagen Tiguan Lot D-0037',
+      }),
+    ).toHaveAccessibleDescription(/You hold the current bid/)
+  })
+
+  it('keeps a non-current recorded bid neutral and non-actionable', () => {
+    renderCard(
+      makeVehicle({
+        bid: {
+          currentBid: { amount: 30_500, userId: 'user-2' },
+          bidCount: 10,
+        },
+      }),
+      makeBid({ userId, amount: 30_000 }),
+    )
+
+    expect(screen.getByText(/Bid recorded · 10 bids/)).toBeVisible()
+    expect(screen.getAllByText('Bid recorded')).toHaveLength(1)
+    expect(screen.getByText('Inspect vehicle')).toBeVisible()
+    expect(screen.getByRole('article')).not.toHaveClass(
+      'vehicle-card--your-bid',
+    )
+    expect(
+      screen.getByRole('link', {
+        name: '2025 Volkswagen Tiguan Lot D-0037',
+      }),
+    ).toHaveAccessibleDescription(/Bid recorded/)
   })
 
   it('replaces a failed image without removing the card link', () => {

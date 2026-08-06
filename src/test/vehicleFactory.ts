@@ -35,9 +35,8 @@ export function makeVehicle(overrides: VehicleOverrides = {}): Vehicle {
     lot: 'D-0037',
     ...vehicleOverrides,
     bid: {
-      currentBid: 29_500,
+      currentBid: { amount: 29_500, userId: null },
       bidCount: 8,
-      yourBid: null,
       reserveStatus: 'Reserve not met',
       ...bid,
     },

@@ -5,7 +5,7 @@ import {
   getConflictingTitleMention,
   getTitleTone,
 } from '../../domain/statusTone'
-import type { Vehicle } from '../../domain/types'
+import type { Bid, Vehicle } from '../../domain/types'
 import { useReferenceTime } from '../../hooks/useReferenceTime'
 import { AuctionRail } from './AuctionRail/AuctionRail'
 import { VehicleGallery } from './VehicleGallery/VehicleGallery'
@@ -14,12 +14,16 @@ import './vehicle.css'
 interface VehicleRouteProps {
   vehicle: Vehicle
   now?: Date
-  onPlaceBid: (amount: number, placedAt: Date) => boolean
+  userBid?: Bid
+  userId: string
+  onPlaceBid: (amount: number) => boolean
 }
 
 export function VehicleRoute({
   vehicle,
   now: suppliedNow,
+  userBid,
+  userId,
   onPlaceBid,
 }: VehicleRouteProps) {
   const referenceTime = useReferenceTime(suppliedNow)
@@ -71,7 +75,9 @@ export function VehicleRoute({
         <AuctionRail
           vehicle={vehicle}
           now={referenceTime}
-          onPlaceBid={(amount) => onPlaceBid(amount, referenceTime)}
+          userBid={userBid}
+          userId={userId}
+          onPlaceBid={onPlaceBid}
         />
 
         <div className="vehicle-detail__sections">

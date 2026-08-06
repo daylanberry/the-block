@@ -1,25 +1,30 @@
 import { useMemo, useRef, useState } from 'react'
 
 import { getAuctionStatus } from '../../domain/auction'
+import { getUserBidForVehicle } from '../../domain/bidding'
 import {
   BODY_STYLE_FILTERS,
   filterVehicles,
   sortOpenVehiclesFirst,
 } from '../../domain/inventory'
-import type { BodyStyleFilter, Vehicle } from '../../domain/types'
+import type { Bid, BodyStyleFilter, Vehicle } from '../../domain/types'
 import { vehicles } from '../../domain/vehicles'
 import { useReferenceTime } from '../../hooks/useReferenceTime'
 import { VehicleCard } from './VehicleCard/VehicleCard'
 import './inventory.css'
 
 interface InventoryRouteProps {
+  bids: readonly Bid[]
   inventory?: readonly Vehicle[]
   now?: Date
+  userId: string
 }
 
 export function InventoryRoute({
+  bids,
   inventory = vehicles,
   now: suppliedNow,
+  userId,
 }: InventoryRouteProps) {
   const [query, setQuery] = useState('')
   const [bodyStyle, setBodyStyle] = useState<BodyStyleFilter>('All')
@@ -59,7 +64,7 @@ export function InventoryRoute({
             Wholesale inventory
           </h1>
           <p>
-            Compare condition, title risk, and bid position across{' '}
+            Compare condition, title risk, and bid activity across{' '}
             {inventory.length} vehicles.
           </p>
         </div>
@@ -138,7 +143,12 @@ export function InventoryRoute({
         >
           {filteredInventory.map((vehicle) => (
             <li key={vehicle.id}>
-              <VehicleCard vehicle={vehicle} now={referenceTime} />
+              <VehicleCard
+                vehicle={vehicle}
+                now={referenceTime}
+                userBid={getUserBidForVehicle(bids, vehicle.id, userId)}
+                userId={userId}
+              />
             </li>
           ))}
         </ul>

@@ -3,31 +3,35 @@ import {
   formatAuctionStart,
   formatCurrency,
 } from '../../../domain/formatters'
+import { isCurrentUserBid } from '../../../domain/bidding'
 import { getReserveTone } from '../../../domain/statusTone'
-import type { Vehicle } from '../../../domain/types'
+import type { Bid, Vehicle } from '../../../domain/types'
 import { BidDialog } from '../../bidding/BidDialog/BidDialog'
 import './AuctionRail.css'
 
 interface AuctionRailProps {
   vehicle: Vehicle
   now: Date
+  userBid?: Bid
+  userId: string
   onPlaceBid: (amount: number) => boolean
 }
 
 export function AuctionRail({
   vehicle,
   now,
+  userBid,
+  userId,
   onPlaceBid,
 }: AuctionRailProps) {
   const auctionStatus = getAuctionStatus(vehicle.auctionStart, now)
   const hasCurrentBid = vehicle.bid.currentBid !== null
-  const isYourBid =
-    vehicle.bid.yourBid !== null &&
-    vehicle.bid.yourBid === vehicle.bid.currentBid
-  const displayedBid = vehicle.bid.currentBid ?? vehicle.startingBid
+  const buyerHasBid = userBid !== undefined || isCurrentUserBid(vehicle, userId)
+  const displayedBid =
+    vehicle.bid.currentBid?.amount ?? vehicle.startingBid
   const minimumBid = getMinimumBid({
     startingBid: vehicle.startingBid,
-    currentBid: vehicle.bid.currentBid,
+    currentBid: vehicle.bid.currentBid?.amount ?? null,
   })
   const reserveTone = getReserveTone(vehicle.bid.reserveStatus)
 
@@ -60,11 +64,7 @@ export function AuctionRail({
 
       <div className="auction-rail__price">
         <span>
-          {isYourBid
-            ? 'Your bid'
-            : hasCurrentBid
-              ? 'Current bid'
-              : 'Starting bid'}
+          {hasCurrentBid ? 'Current bid' : 'Starting bid'}
         </span>
         <strong>{formatCurrency(displayedBid)}</strong>
         <small>CAD</small>
@@ -80,14 +80,14 @@ export function AuctionRail({
           <dt>Reserve</dt>
           <dd data-tone={reserveTone}>{vehicle.bid.reserveStatus}</dd>
         </div>
-        {auctionStatus === 'Open' ? (
+        {auctionStatus === 'Open' && !buyerHasBid ? (
           <div>
             <dt>Next valid bid</dt>
             <dd>
               {formatCurrency(minimumBid)} <small>CAD</small>
             </dd>
           </div>
-        ) : (
+        ) : auctionStatus === 'Scheduled' ? (
           <div>
             <dt>Auction starts</dt>
             <dd>
@@ -96,7 +96,7 @@ export function AuctionRail({
               </time>
             </dd>
           </div>
-        )}
+        ) : null}
       </dl>
 
       {auctionStatus === 'Scheduled' ? (
@@ -107,6 +107,8 @@ export function AuctionRail({
         <BidDialog
           key={vehicle.id}
           vehicle={vehicle}
+          userBid={userBid}
+          userId={userId}
           onPlaceBid={onPlaceBid}
         />
       )}

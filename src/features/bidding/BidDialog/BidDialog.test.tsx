@@ -1,15 +1,22 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
+import { makeBid } from '../../../test/bidFactory'
 import { makeVehicle } from '../../../test/vehicleFactory'
 import { BidDialog } from './BidDialog'
+
+const userId = 'user-1'
 
 function renderDialog(
   onPlaceBid = vi.fn(() => true),
   vehicle = makeVehicle(),
 ) {
   const view = render(
-    <BidDialog vehicle={vehicle} onPlaceBid={onPlaceBid} />,
+    <BidDialog
+      vehicle={vehicle}
+      userId={userId}
+      onPlaceBid={onPlaceBid}
+    />,
   )
   const trigger = screen.getByRole('button', { name: 'Place a bid' })
 
@@ -50,7 +57,13 @@ describe('bid dialog', () => {
 
   it('softens the mobile launcher only while the buyer is scrolling', () => {
     vi.useFakeTimers()
-    render(<BidDialog vehicle={makeVehicle()} onPlaceBid={vi.fn()} />)
+    render(
+      <BidDialog
+        vehicle={makeVehicle()}
+        userId={userId}
+        onPlaceBid={vi.fn()}
+      />,
+    )
 
     const mobileLauncher = document.querySelector(
       '.bid-dialog__mobile-launcher',
@@ -80,6 +93,52 @@ describe('bid dialog', () => {
     )
 
     vi.useRealTimers()
+  })
+
+  it('replaces both launchers with a noninteractive ownership state', () => {
+    render(
+      <BidDialog
+        vehicle={makeVehicle({
+          bid: { currentBid: { amount: 30_000, userId } },
+        })}
+        userId={userId}
+        onPlaceBid={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('note')).toHaveTextContent(
+      'You hold the current bid',
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Place a bid' }),
+    ).not.toBeInTheDocument()
+    expect(
+      document.querySelector('.bid-dialog__mobile-launcher'),
+    ).not.toBeInTheDocument()
+  })
+
+  it.each([
+    null,
+    { amount: 30_500, userId: 'user-2' },
+  ])('keeps any recorded-bid state safely unavailable: %o', (currentBid) => {
+    render(
+      <BidDialog
+        vehicle={makeVehicle({
+          bid: { currentBid },
+        })}
+        userBid={makeBid({ userId, amount: 30_000 })}
+        userId={userId}
+        onPlaceBid={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('note')).toHaveTextContent('Bid recorded')
+    expect(screen.getByRole('note')).toHaveTextContent(
+      'One bid per vehicle this session',
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Place a bid' }),
+    ).not.toBeInTheDocument()
   })
 
   it.each([
@@ -211,8 +270,12 @@ describe('bid dialog', () => {
     rerender(
       <BidDialog
         vehicle={makeVehicle({
-          bid: { currentBid: 30_000, bidCount: 9 },
+          bid: {
+            currentBid: { amount: 30_000, userId: 'user-2' },
+            bidCount: 9,
+          },
         })}
+        userId={userId}
         onPlaceBid={onPlaceBid}
       />,
     )

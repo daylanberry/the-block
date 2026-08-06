@@ -16,11 +16,23 @@ export type TitleStatus = 'Clean' | 'Rebuilt' | 'Salvage'
 export type ReserveStatus = 'No reserve' | 'Reserve not met' | 'Reserve met'
 export type AuctionStatus = 'Open' | 'Scheduled'
 
+export interface CurrentBidSnapshot {
+  amount: number
+  userId: string | null
+}
+
 export interface BidState {
-  currentBid: number | null
+  currentBid: CurrentBidSnapshot | null
   bidCount: number
-  yourBid: number | null
   reserveStatus: ReserveStatus
+}
+
+export interface Bid {
+  readonly id: string
+  readonly vehicleId: string
+  readonly userId: string
+  readonly amount: number
+  readonly placedAt: string
 }
 
 export interface Vehicle {

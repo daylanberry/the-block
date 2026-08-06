@@ -467,9 +467,11 @@ export function loadVehicleCatalog(
     sellingDealership: rawVehicle.selling_dealership,
     lot: rawVehicle.lot,
     bid: {
-      currentBid: rawVehicle.current_bid,
+      currentBid:
+        rawVehicle.current_bid === null
+          ? null
+          : { amount: rawVehicle.current_bid, userId: null },
       bidCount: rawVehicle.bid_count,
-      yourBid: null,
       reserveStatus: deriveReserveStatus(
         rawVehicle.reserve_price,
         rawVehicle.current_bid,

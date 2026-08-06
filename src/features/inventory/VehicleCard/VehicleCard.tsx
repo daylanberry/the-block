@@ -1,68 +1,41 @@
-import { useState } from 'react'
 import { Link } from 'wouter'
 
+import { VehiclePhoto } from '../../../components/VehiclePhoto/VehiclePhoto'
 import { getAuctionStatus } from '../../../domain/auction'
+import {
+  isCurrentUserBid,
+} from '../../../domain/bidding'
 import {
   formatAuctionStart,
   formatCurrency,
   formatOdometer,
 } from '../../../domain/formatters'
 import { getReserveTone, getTitleTone } from '../../../domain/statusTone'
-import type { Vehicle } from '../../../domain/types'
+import type { Bid, Vehicle } from '../../../domain/types'
 import './VehicleCard.css'
 
 interface VehicleCardProps {
   vehicle: Vehicle
   now: Date
+  userBid?: Bid
+  userId: string
 }
 
-function VehicleImage({ vehicle }: Pick<VehicleCardProps, 'vehicle'>) {
-  const [hasError, setHasError] = useState(false)
-  const [isLoaded, setIsLoaded] = useState(false)
-  const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`
-  const primaryImage = vehicle.images[0]
-
-  if (hasError || !primaryImage) {
-    return (
-      <div
-        className="vehicle-card__image-fallback"
-        role="img"
-        aria-label={`Photo unavailable for ${vehicleName}`}
-      >
-        <span aria-hidden="true">Photo / unavailable</span>
-      </div>
-    )
-  }
-
-  return (
-    <>
-      {!isLoaded ? (
-        <span className="vehicle-card__image-loading" aria-hidden="true">
-          Loading photo
-        </span>
-      ) : null}
-      <img
-        className={`vehicle-card__image${isLoaded ? ' is-loaded' : ''}`}
-        src={primaryImage}
-        alt={`${vehicleName}, lot ${vehicle.lot}`}
-        loading="lazy"
-        decoding="async"
-        onLoad={() => setIsLoaded(true)}
-        onError={() => setHasError(true)}
-      />
-    </>
-  )
-}
-
-export function VehicleCard({ vehicle, now }: VehicleCardProps) {
+export function VehicleCard({
+  vehicle,
+  now,
+  userBid,
+  userId,
+}: VehicleCardProps) {
   const titleId = `vehicle-${vehicle.id}-title`
   const lotId = `vehicle-${vehicle.id}-lot`
+  const bidPositionId = `vehicle-${vehicle.id}-bid-position`
   const auctionStatus = getAuctionStatus(vehicle.auctionStart, now)
   const hasCurrentBid = vehicle.bid.currentBid !== null
-  const isYourBid =
-    vehicle.bid.yourBid !== null &&
-    vehicle.bid.yourBid === vehicle.bid.currentBid
-  const displayedBid = vehicle.bid.currentBid ?? vehicle.startingBid
+  const isYourBid = isCurrentUserBid(vehicle, userId)
+  const buyerHasBid = userBid !== undefined || isYourBid
+  const displayedBid =
+    vehicle.bid.currentBid?.amount ?? vehicle.startingBid
   const damageCount = vehicle.damageNotes.length
   const damageLabel =
     damageCount === 0
@@ -80,9 +53,10 @@ export function VehicleCard({ vehicle, now }: VehicleCardProps) {
         className="vehicle-card__link"
         href={`/vehicles/${vehicle.id}`}
         aria-labelledby={`${titleId} ${lotId}`}
+        aria-describedby={buyerHasBid ? bidPositionId : undefined}
       >
         <div className="vehicle-card__media">
-          <VehicleImage vehicle={vehicle} />
+          <VehiclePhoto vehicle={vehicle} />
           <span className="vehicle-card__lot" id={lotId}>
             Lot {vehicle.lot}
           </span>
@@ -97,7 +71,13 @@ export function VehicleCard({ vehicle, now }: VehicleCardProps) {
                 {formatAuctionStart(vehicle.auctionStart)}
               </time>
             ) : (
-              <span>Bid entry available</span>
+              <span>
+                {isYourBid
+                  ? 'Current bid is yours'
+                  : buyerHasBid
+                    ? 'Bid recorded'
+                    : 'Bid entry available'}
+              </span>
             )}
           </div>
         </div>
@@ -141,25 +121,26 @@ export function VehicleCard({ vehicle, now }: VehicleCardProps) {
         <footer className="vehicle-card__footer">
           <div className="vehicle-card__price">
             <span>
-              {isYourBid
-                ? 'Your bid'
-                : hasCurrentBid
-                  ? 'Current bid'
-                  : 'Starting bid'}
+              {hasCurrentBid ? 'Current bid' : 'Starting bid'}
             </span>
             <strong>
               {formatCurrency(displayedBid)} <small>CAD</small>
             </strong>
-            <small>
-              {hasCurrentBid
-                ? `${vehicle.bid.bidCount} ${vehicle.bid.bidCount === 1 ? 'bid' : 'bids'}`
-                : 'No bids yet'}
+            <small id={buyerHasBid ? bidPositionId : undefined}>
+              {isYourBid
+                ? `You hold the current bid · ${vehicle.bid.bidCount} ${vehicle.bid.bidCount === 1 ? 'bid' : 'bids'}`
+                : buyerHasBid
+                  ? `Bid recorded · ${vehicle.bid.bidCount} ${vehicle.bid.bidCount === 1 ? 'bid' : 'bids'}`
+                  : hasCurrentBid
+                    ? `${vehicle.bid.bidCount} ${vehicle.bid.bidCount === 1 ? 'bid' : 'bids'}`
+                    : 'No bids yet'}
             </small>
           </div>
           <div className="vehicle-card__action">
             <span data-tone={reserveTone}>{vehicle.bid.reserveStatus}</span>
             <strong>
-              Inspect vehicle <span aria-hidden="true">→</span>
+              Inspect vehicle{' '}
+              <span aria-hidden="true">→</span>
             </strong>
           </div>
         </footer>

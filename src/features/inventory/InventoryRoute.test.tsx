@@ -7,6 +7,7 @@ import { makeVehicle } from '../../test/vehicleFactory'
 import { InventoryRoute } from './InventoryRoute'
 
 const referenceTime = new Date(2026, 7, 4, 12)
+const userId = 'user-1'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -17,7 +18,12 @@ function renderInventory(inventory?: Parameters<typeof InventoryRoute>[0]['inven
 
   return render(
     <Router hook={hook}>
-      <InventoryRoute inventory={inventory} now={referenceTime} />
+      <InventoryRoute
+        bids={[]}
+        inventory={inventory}
+        now={referenceTime}
+        userId={userId}
+      />
     </Router>,
   )
 }
@@ -108,7 +114,7 @@ describe('inventory route', () => {
 
     render(
       <Router hook={hook}>
-        <InventoryRoute inventory={[vehicle]} />
+        <InventoryRoute bids={[]} inventory={[vehicle]} userId={userId} />
       </Router>,
     )
 

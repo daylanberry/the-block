@@ -19,8 +19,7 @@ describe('vehicle data loading', () => {
       fuelType: 'Gasoline',
       titleStatus: 'Clean',
       bid: {
-        currentBid: 29_500,
-        yourBid: null,
+        currentBid: { amount: 29_500, userId: null },
         reserveStatus: 'Reserve not met',
       },
     })
@@ -143,7 +142,10 @@ describe('vehicle data loading', () => {
       demoDate,
     )
 
-    expect(catalog.vehicles[0].bid.currentBid).toBe(sourceVehicle.starting_bid)
+    expect(catalog.vehicles[0].bid.currentBid).toEqual({
+      amount: sourceVehicle.starting_bid,
+      userId: null,
+    })
   })
 })
 

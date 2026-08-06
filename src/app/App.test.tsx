@@ -10,7 +10,7 @@ function renderRoute(path: string) {
 
   return render(
     <Router hook={hook}>
-      <App />
+      <App userId="test-user" />
     </Router>,
   )
 }
@@ -44,12 +44,27 @@ describe('application routing', () => {
     ).toHaveAttribute('href', '/')
   })
 
+  it('supports a direct session-only My bids route', () => {
+    renderRoute('/bids')
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'My bids' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'No bids this session' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /my bids/i })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
   it('moves focus to the route heading after client-side navigation', () => {
     const { hook, navigate } = memoryLocation({ path: '/' })
 
     render(
       <Router hook={hook}>
-        <App />
+        <App userId="test-user" />
       </Router>,
     )
 
@@ -67,6 +82,24 @@ describe('application routing', () => {
 
     expect(routeHeading).toHaveAttribute('tabindex', '-1')
     expect(routeHeading).toHaveFocus()
+  })
+
+  it('moves focus to the My bids heading after client-side navigation', () => {
+    const { hook, navigate } = memoryLocation({ path: '/' })
+
+    render(
+      <Router hook={hook}>
+        <App userId="test-user" />
+      </Router>,
+    )
+
+    act(() => {
+      navigate('/bids')
+    })
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'My bids' }),
+    ).toHaveFocus()
   })
 
   it('renders a vehicle-specific recovery state for an unknown id', () => {

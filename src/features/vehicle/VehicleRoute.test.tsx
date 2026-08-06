@@ -4,12 +4,17 @@ import { Router } from 'wouter'
 import { memoryLocation } from 'wouter/memory-location'
 
 import type { TitleStatus } from '../../domain/types'
+import { makeBid } from '../../test/bidFactory'
 import { makeVehicle } from '../../test/vehicleFactory'
 import { VehicleRoute } from './VehicleRoute'
 
 const referenceTime = new Date(2026, 7, 4, 12)
+const userId = 'user-1'
 
-function renderVehicle(vehicle = makeVehicle()) {
+function renderVehicle(
+  vehicle = makeVehicle(),
+  userBid?: ReturnType<typeof makeBid>,
+) {
   const { hook } = memoryLocation({ path: `/vehicles/${vehicle.id}`, static: true })
 
   return render(
@@ -17,6 +22,8 @@ function renderVehicle(vehicle = makeVehicle()) {
       <VehicleRoute
         vehicle={vehicle}
         now={referenceTime}
+        userBid={userBid}
+        userId={userId}
         onPlaceBid={() => true}
       />
     </Router>,
@@ -127,6 +134,58 @@ describe('vehicle detail route', () => {
       screen.queryByRole('button', { name: 'Place a bid' }),
     ).not.toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('shows current-bid ownership without offering another self-bid', () => {
+    renderVehicle(
+      makeVehicle({
+        bid: {
+          currentBid: { amount: 30_000, userId },
+          bidCount: 9,
+          reserveStatus: 'Reserve met',
+        },
+      }),
+    )
+
+    const auctionRail = screen.getByRole('complementary', {
+      name: 'Open for bidding',
+    })
+
+    expect(within(auctionRail).getByText('Current bid')).toBeInTheDocument()
+    expect(within(auctionRail).getByRole('note')).toHaveTextContent(
+      'You hold the current bid',
+    )
+    expect(
+      within(auctionRail).queryByText('Next valid bid'),
+    ).not.toBeInTheDocument()
+    expect(
+      within(auctionRail).queryByRole('button', { name: 'Place a bid' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps a non-current recorded bid read-only', () => {
+    renderVehicle(
+      makeVehicle({
+        bid: {
+          currentBid: { amount: 30_500, userId: 'user-2' },
+          bidCount: 10,
+          reserveStatus: 'Reserve met',
+        },
+      }),
+      makeBid({ userId, amount: 30_000 }),
+    )
+
+    const auctionRail = screen.getByRole('complementary', {
+      name: 'Open for bidding',
+    })
+
+    expect(within(auctionRail).getByText('$30,500')).toBeVisible()
+    expect(within(auctionRail).getByRole('note')).toHaveTextContent(
+      'Bid recorded',
+    )
+    expect(
+      within(auctionRail).queryByRole('button', { name: 'Place a bid' }),
+    ).not.toBeInTheDocument()
   })
 
   it.each([

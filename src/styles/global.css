@@ -162,12 +162,35 @@ a {
   min-width: 7rem;
   align-items: center;
   justify-content: center;
+  gap: var(--space-2);
   color: rgb(255 255 255 / 90%);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-decoration: none;
   text-transform: uppercase;
+}
+
+.primary-nav__count {
+  display: inline-flex;
+  min-width: 1.45rem;
+  height: 1.45rem;
+  padding: 0 0.35rem;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-surface);
+  background: rgb(255 255 255 / 14%);
+  border: 1px solid rgb(255 255 255 / 42%);
+  border-radius: var(--radius-control);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.primary-nav__link--active .primary-nav__count {
+  color: var(--color-brand-deep);
+  background: var(--color-surface);
+  border-color: var(--color-surface);
 }
 
 .primary-nav__link::after {
@@ -370,7 +393,9 @@ a {
 
   .primary-nav__link {
     min-width: 0;
-    justify-content: flex-start;
+    min-height: 2.75rem;
+    flex: 1 1 50%;
+    justify-content: center;
   }
 
   .app-main,

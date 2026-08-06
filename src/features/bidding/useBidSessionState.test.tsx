@@ -21,9 +21,11 @@ function BidSessionProbe({
   attempts,
   onResults,
 }: BidSessionProbeProps) {
-  const { vehicles, placeBid } = useBidSessionState({
+  const { vehicles, bids, placeBid } = useBidSessionState({
+    userId: 'user-1',
     initialVehicles,
     resolveReserveStatus,
+    createBidId: () => 'bid-1',
   })
 
   return (
@@ -44,16 +46,17 @@ function BidSessionProbe({
         {vehicles
           .map(
             (vehicle) =>
-              `${vehicle.id}:${vehicle.bid.currentBid ?? 'none'}:${vehicle.bid.bidCount}`,
+              `${vehicle.id}:${vehicle.bid.currentBid?.amount ?? 'none'}:${vehicle.bid.bidCount}`,
           )
           .join('|')}
+        {`|records:${bids.length}:${bids[0]?.userId ?? 'none'}`}
       </output>
     </>
   )
 }
 
 describe('bid session state', () => {
-  it('accepts only the first of two identical same-tick bids', () => {
+  it('rejects a higher same-tick self-bid after the first bid is accepted', () => {
     const vehicle = makeVehicle({ auctionStart: new Date(2026, 7, 4, 11) })
     const onResults = vi.fn()
 
@@ -63,7 +66,7 @@ describe('bid session state', () => {
         resolveReserveStatus={() => 'Reserve met'}
         attempts={[
           { vehicleId: vehicle.id, amount: 30_000 },
-          { vehicleId: vehicle.id, amount: 30_000 },
+          { vehicleId: vehicle.id, amount: 30_500 },
         ]}
         onResults={onResults}
       />,
@@ -73,7 +76,7 @@ describe('bid session state', () => {
 
     expect(onResults).toHaveBeenCalledWith([true, false])
     expect(screen.getByRole('status', { name: 'Bid state' })).toHaveTextContent(
-      `${vehicle.id}:30000:9`,
+      `${vehicle.id}:30000:9|records:1:user-1`,
     )
   })
 
@@ -96,7 +99,7 @@ describe('bid session state', () => {
 
     expect(onResults).toHaveBeenCalledWith([false, false])
     expect(screen.getByRole('status', { name: 'Bid state' })).toHaveTextContent(
-      `${vehicle.id}:29500:8`,
+      `${vehicle.id}:29500:8|records:0:none`,
     )
   })
 })

@@ -36,9 +36,8 @@ function makeVehicle(overrides: Partial<Vehicle> = {}): Vehicle {
     sellingDealership: 'Grand Touring Motors',
     lot: 'D-0037',
     bid: {
-      currentBid: 29_500,
+      currentBid: { amount: 29_500, userId: null },
       bidCount: 8,
-      yourBid: null,
       reserveStatus: 'Reserve not met',
     },
     ...overrides,

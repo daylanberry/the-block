@@ -4,9 +4,10 @@
 
 Before changing the project, read:
 
-1. `PLAN.md` for scope, phase ownership, acceptance criteria, and the execution log.
-2. `DESIGN.md` for the product thesis, interaction contract, and visual system.
-3. `README.md`, `SUBMISSION.md`, and `WALKTHROUGH.md` for the original challenge requirements. After Phase 6, the original `README.md` lives at `docs/CHALLENGE.md`.
+1. `docs/CHALLENGE.md`, `SUBMISSION.md`, and `WALKTHROUGH.md` for the original challenge requirements.
+2. `PLAN.md` for scope, phase ownership, acceptance criteria, and the execution log.
+3. `DESIGN.md` for the product thesis, interaction contract, and visual system.
+4. `README.md` for the reviewer-facing setup, final decisions, and documented assumptions.
 
 If these documents conflict, preserve the challenge requirements first, then ask the project owner before changing product scope.
 

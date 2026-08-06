@@ -3,13 +3,17 @@ import { Link, useLocation } from "wouter";
 
 interface AppShellProps {
   children: ReactNode;
+  userBidVehicleCount: number;
 }
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, userBidVehicleCount }: AppShellProps) {
   const [location] = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   const previousLocationRef = useRef(location);
   const isInventoryActive = location === "/";
+  const isMyBidsActive = location === "/bids";
+  const bidVehicleLabel =
+    userBidVehicleCount === 1 ? "vehicle" : "vehicles";
 
   useEffect(() => {
     if (previousLocationRef.current === location) {
@@ -56,6 +60,23 @@ export function AppShell({ children }: AppShellProps) {
               href="/"
             >
               Inventory
+            </Link>
+            <Link
+              aria-current={isMyBidsActive ? "page" : undefined}
+              className={
+                isMyBidsActive
+                  ? "primary-nav__link primary-nav__link--active"
+                  : "primary-nav__link"
+              }
+              href="/bids"
+            >
+              <span>My bids</span>
+              <span className="primary-nav__count" aria-hidden="true">
+                {userBidVehicleCount}
+              </span>
+              <span className="visually-hidden">
+                {userBidVehicleCount} {bidVehicleLabel} with bids this session
+              </span>
             </Link>
           </nav>
 

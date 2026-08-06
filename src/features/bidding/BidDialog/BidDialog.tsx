@@ -10,18 +10,26 @@ import {
 import { createPortal } from "react-dom";
 
 import { getMinimumBid, validateBidAmount } from "../../../domain/auction";
+import { isCurrentUserBid } from "../../../domain/bidding";
 import { formatCurrency } from "../../../domain/formatters";
-import type { Vehicle } from "../../../domain/types";
+import type { Bid, Vehicle } from "../../../domain/types";
 import "./BidDialog.css";
 
 interface BidDialogProps {
   vehicle: Vehicle;
+  userBid?: Bid;
+  userId: string;
   onPlaceBid: (amount: number) => boolean;
 }
 
 type BidDialogStep = "entry" | "review" | "success";
 
-export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
+export function BidDialog({
+  vehicle,
+  userBid,
+  userId,
+  onPlaceBid,
+}: BidDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobileLauncherScrolling, setIsMobileLauncherScrolling] =
     useState(false);
@@ -33,6 +41,7 @@ export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const reviewHeadingRef = useRef<HTMLHeadingElement>(null);
   const successHeadingRef = useRef<HTMLHeadingElement>(null);
+  const ownershipRef = useRef<HTMLDivElement>(null);
   const activeTriggerRef = useRef<HTMLButtonElement | null>(null);
   const shouldFocusEntryRef = useRef(false);
   const scrollEndTimerRef = useRef<number | null>(null);
@@ -44,12 +53,17 @@ export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
   const errorId = `${inputId}-error`;
   const minimumBid = getMinimumBid({
     startingBid: vehicle.startingBid,
-    currentBid: vehicle.bid.currentBid,
+    currentBid: vehicle.bid.currentBid?.amount ?? null,
   });
-  const displayedBid = vehicle.bid.currentBid ?? vehicle.startingBid;
+  const displayedBid =
+    vehicle.bid.currentBid?.amount ?? vehicle.startingBid;
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
   const displayedBidLabel =
     vehicle.bid.currentBid === null ? "Starting bid" : "Current bid";
+  const currentUserHoldsBid = isCurrentUserBid(vehicle, userId);
+  const bidActionUnavailable =
+    userBid !== undefined || currentUserHoldsBid;
+  const launcherLabel = "Place a bid";
 
   useEffect(() => {
     function handleScroll() {
@@ -135,7 +149,12 @@ export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
   function handleClose() {
     setIsOpen(false);
     resetFlow();
-    activeTriggerRef.current?.focus();
+
+    if (activeTriggerRef.current?.isConnected) {
+      activeTriggerRef.current.focus();
+    } else {
+      ownershipRef.current?.focus();
+    }
   }
 
   function handleCancel(event: SyntheticEvent<HTMLDialogElement>) {
@@ -161,7 +180,7 @@ export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
   function validateCurrentAmount(amount: string | number) {
     return validateBidAmount(amount, {
       startingBid: vehicle.startingBid,
-      currentBid: vehicle.bid.currentBid,
+      currentBid: vehicle.bid.currentBid?.amount ?? null,
     });
   }
 
@@ -217,7 +236,7 @@ export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
 
   const launcherContent = (
     <>
-      <span>Place a bid</span>
+      <span>{launcherLabel}</span>
       <strong>Minimum {formatCurrency(minimumBid)} CAD</strong>
       <i aria-hidden="true">→</i>
     </>
@@ -228,21 +247,23 @@ export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
       ? null
       : createPortal(
           <>
-            <button
-              className={`bid-dialog__mobile-launcher${
-                isMobileLauncherScrolling
-                  ? " bid-dialog__mobile-launcher--scrolling"
-                  : ""
-              }`}
-              type="button"
-              aria-label="Place a bid"
-              aria-haspopup="dialog"
-              aria-controls={dialogId}
-              aria-expanded={isOpen}
-              onClick={openDialog}
-            >
-              {launcherContent}
-            </button>
+            {bidActionUnavailable ? null : (
+              <button
+                className={`bid-dialog__mobile-launcher${
+                  isMobileLauncherScrolling
+                    ? " bid-dialog__mobile-launcher--scrolling"
+                    : ""
+                }`}
+                type="button"
+                aria-label={launcherLabel}
+                aria-haspopup="dialog"
+                aria-controls={dialogId}
+                aria-expanded={isOpen}
+                onClick={openDialog}
+              >
+                {launcherContent}
+              </button>
+            )}
 
             <dialog
               ref={dialogRef}
@@ -433,19 +454,46 @@ export function BidDialog({ vehicle, onPlaceBid }: BidDialogProps) {
 
   return (
     <>
-      <div className="bid-dialog__rail-launcher-wrap">
-        <button
-          className="bid-dialog__rail-launcher"
-          type="button"
-          aria-label="Place a bid"
-          aria-haspopup="dialog"
-          aria-controls={dialogId}
-          aria-expanded={isOpen}
-          onClick={openDialog}
+      {bidActionUnavailable ? (
+        <div
+          ref={ownershipRef}
+          className={`bid-dialog__ownership${
+            currentUserHoldsBid
+              ? ""
+              : " bid-dialog__ownership--unavailable"
+          }`}
+          role="note"
+          tabIndex={-1}
         >
-          {launcherContent}
-        </button>
-      </div>
+          <span aria-hidden="true">{currentUserHoldsBid ? "✓" : "!"}</span>
+          <div>
+            <strong>
+              {currentUserHoldsBid
+                ? "You hold the current bid"
+                : "Bid recorded"}
+            </strong>
+            <small>
+              {currentUserHoldsBid
+                ? "No action needed"
+                : "One bid per vehicle this session"}
+            </small>
+          </div>
+        </div>
+      ) : (
+        <div className="bid-dialog__rail-launcher-wrap">
+          <button
+            className="bid-dialog__rail-launcher"
+            type="button"
+            aria-label={launcherLabel}
+            aria-haspopup="dialog"
+            aria-controls={dialogId}
+            aria-expanded={isOpen}
+            onClick={openDialog}
+          >
+            {launcherContent}
+          </button>
+        </div>
+      )}
       {modalLayer}
     </>
   );
