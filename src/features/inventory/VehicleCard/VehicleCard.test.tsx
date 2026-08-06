@@ -97,9 +97,12 @@ describe('vehicle card', () => {
     )
 
     expect(screen.getByText(/You hold the current bid · 9 bids/)).toBeVisible()
-    expect(screen.getByText('Current bid is yours')).toBeVisible()
+    expect(
+      screen.getByText('Current bid is yours · raise available'),
+    ).toBeVisible()
     expect(screen.getByText('Current bid')).toBeVisible()
     expect(screen.getByText('$30,000', { exact: false })).toBeVisible()
+    expect(screen.getByText('Review and raise bid')).toBeVisible()
     expect(screen.getByRole('article')).toHaveClass('vehicle-card--your-bid')
     expect(
       screen.getByRole('link', {
@@ -120,8 +123,8 @@ describe('vehicle card', () => {
     )
 
     expect(screen.getByText(/Bid recorded · 10 bids/)).toBeVisible()
-    expect(screen.getAllByText('Bid recorded')).toHaveLength(1)
-    expect(screen.getByText('Inspect vehicle')).toBeVisible()
+    expect(screen.getByText('Higher bid available')).toBeVisible()
+    expect(screen.getByText('Review and raise bid')).toBeVisible()
     expect(screen.getByRole('article')).not.toHaveClass(
       'vehicle-card--your-bid',
     )
@@ -131,6 +134,27 @@ describe('vehicle card', () => {
       }),
     ).toHaveAccessibleDescription(/Bid recorded/)
   })
+
+  it.each(['Reserve met', 'No reserve'] as const)(
+    'keeps the single detail link in inspection mode when the bid is %s',
+    (reserveStatus) => {
+      renderCard(
+        makeVehicle({
+          bid: {
+            currentBid: { amount: 30_000, userId },
+            bidCount: 9,
+            reserveStatus,
+          },
+        }),
+        makeBid({ userId, amount: 30_000 }),
+      )
+
+      expect(screen.getByText('Current bid is yours')).toBeVisible()
+      expect(screen.getByText('Inspect vehicle')).toBeVisible()
+      expect(screen.queryByText('Review and raise bid')).not.toBeInTheDocument()
+      expect(screen.getAllByRole('link')).toHaveLength(1)
+    },
+  )
 
   it('replaces a failed image without removing the card link', () => {
     renderCard()

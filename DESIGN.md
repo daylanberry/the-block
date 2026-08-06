@@ -20,7 +20,7 @@ Promote condition grade, title status, damage, location, and reserve state along
 
 The prototype supports one polished path:
 
-`Find inventory → inspect a vehicle → review a bid → place the bid → see the result`
+`Find inventory → inspect a vehicle → review a bid → place the bid → see the result → review My bids`
 
 Do not introduce competing account, checkout, seller, or payment paths.
 
@@ -73,17 +73,31 @@ The detail page presents, in order:
 
 At desktop widths, use a primary content column and a sticky summary bid rail. At mobile widths, use one content column and a single sticky action that opens the shared bid dialog; do not duplicate the form.
 
+### My bids route
+
+The `My bids` page is a session-scoped current-bid view, not an account dashboard or transaction history. It presents:
+
+1. A concise page heading and unique vehicle count.
+2. A clear note that the current session resets on refresh.
+3. One compact row per vehicle joined to the retained bid record whose `userId` matches the active prototype user, retaining stable catalog order.
+4. Your bid, bid count, reserve state, exact auction state, and directly evidenced current-bid ownership.
+5. One canonical link from each row back to `/vehicles/:vehicleId`.
+
+Show `You hold the current bid` only when the current auction bid's owner `userId` matches the active `userId`. Equal monetary values never prove ownership. If the user has a bid record but the current owner is unknown or different, use the neutral `Bid recorded` state. While the reserve remains unmet, that neutral state may offer a higher-bid path without inventing an outbid event. When bidding is locked, pair `Bid recorded` with the public reserve state and `further bidding unavailable`; reserve `No action needed` for evidenced current owners. Never claim that the buyer is winning, has won, or owns a final auction result.
+
+The frontend-only session creates one anonymous `userId` and retains one latest bid record per user and vehicle. An accepted raise replaces that record immutably with its new ID, amount, and timestamp while the auction bid count still increments. A prior bidder may raise only while the vehicle's current reserve status is `Reserve not met`; `Reserve met` and `No reserve` lock repeat bidding. Internal bid and user IDs never appear in visible or accessible content. The prototype has no competing-bid feed or durable event ledger, so it does not render realtime outbid behavior or imply bid-history persistence. The empty state uses one `Browse inventory` action.
+
 ### Bid flow
 
 Use one shared three-state bid dialog rather than an embedded form or separate multi-page flow:
 
 1. **Entry:** show the minimum bid, currency, input, and inline validation.
 2. **Review:** replace the entry controls with a concise bid summary and explicit confirm/cancel actions.
-3. **Success:** acknowledge the bid and show the updated amount, count, reserve state, and `Your bid` label.
+3. **Success:** acknowledge the bid and show the updated amount, count, reserve state, and current-bid ownership.
 
 The confirmation control should state the amount, such as `Place $24,500 bid`, rather than using a vague `Confirm` label.
 
-Keep the dialog focused on the bid itself. Do not add max/proxy bidding, notes, services, transportation, guarantees, or payment collection. On close, restore focus to the exact desktop or mobile launcher that opened it.
+Keep the dialog focused on the bid itself. Do not add max/proxy bidding, notes, services, transportation, guarantees, or payment collection. After a bid that leaves the reserve unmet, retain one `Raise your bid` launcher with the next `$500` minimum. After a bid results in `Reserve met` or `No reserve`, remove the launcher and show `You hold the current bid` / `No action needed`. On close, restore focus to the exact launcher when it remains; after a reserve-clearing bid removes that launcher, move focus to the replacement ownership status.
 
 ## Content Rules
 
@@ -92,6 +106,9 @@ Keep the dialog focused on the bid itself. Do not add max/proxy bidding, notes, 
 - Normalize display casing without modifying the source JSON.
 - Use `No reported damage` when damage notes are empty.
 - Use `No bids yet` alongside the starting bid when `current_bid` is null.
+- Derive `You hold the current bid` only when the current bid owner `userId` matches the active `userId`; otherwise describe an existing user bid neutrally as `Bid recorded` without inventing an auction position.
+- For an eligible raise, pair ownership copy with `Reserve not met — you can raise your bid`; use `Raise your bid` as the action label and keep the next minimum visible in CAD.
+- For a locked prior bid without current ownership, use `[public reserve state] — further bidding unavailable`; use `No action needed` only with evidenced ownership.
 - Show only `No reserve`, `Reserve not met`, or `Reserve met`; never reveal `reserve_price`.
 - Do not render a Buy Now action in this prototype.
 - Prefer direct auction language over promotional copy.
@@ -195,13 +212,19 @@ Dense metadata may use the lower half of the scale. Page sections and major read
 - clean, rebuilt, and salvage title
 - damage notes and no reported damage
 - invalid bid, bid review, and successful bid
+- empty and populated current-session `My bids` views
+- current-bid ownership with a reserve-unmet raise action
+- current-bid ownership locked for reserve met and no reserve
+- equal bid amounts with different user IDs that do not imply ownership
+- supplied catalog bids with an unknown owner
+- repeated accepted raises replacing the retained user bid without adding another `My bids` row
 - image load failure
 - 375px and 1440px layouts
 - reduced-motion preference
 
 ## Reference Demo Vehicle
 
-Use lot `D-0037`, the 2025 Volkswagen Tiguan, for the primary walkthrough. It exercises an active bid, unmet reserve, clean title, no reported damage, and a strong condition grade.
+Use lot `B-0004`, the 2025 Subaru Outback, for the primary walkthrough. Its active bid reaches `Reserve met` after two minimum-valid `$500` bids, so the live demo can show both the eligible-raise and locked-ownership states without revealing the private reserve price. Its rebuilt title and reported damage keep the condition-first product decision visible during the same journey.
 
 ## Design Review Standard
 

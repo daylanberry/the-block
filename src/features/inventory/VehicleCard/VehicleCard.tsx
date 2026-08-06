@@ -3,6 +3,7 @@ import { Link } from 'wouter'
 import { VehiclePhoto } from '../../../components/VehiclePhoto/VehiclePhoto'
 import { getAuctionStatus } from '../../../domain/auction'
 import {
+  getUserBidAction,
   isCurrentUserBid,
 } from '../../../domain/bidding'
 import {
@@ -34,6 +35,9 @@ export function VehicleCard({
   const hasCurrentBid = vehicle.bid.currentBid !== null
   const isYourBid = isCurrentUserBid(vehicle, userId)
   const buyerHasBid = userBid !== undefined || isYourBid
+  const canRaiseBid =
+    auctionStatus === 'Open' &&
+    getUserBidAction(vehicle, userId, userBid) === 'raise'
   const displayedBid =
     vehicle.bid.currentBid?.amount ?? vehicle.startingBid
   const damageCount = vehicle.damageNotes.length
@@ -73,9 +77,13 @@ export function VehicleCard({
             ) : (
               <span>
                 {isYourBid
-                  ? 'Current bid is yours'
+                  ? canRaiseBid
+                    ? 'Current bid is yours · raise available'
+                    : 'Current bid is yours'
                   : buyerHasBid
-                    ? 'Bid recorded'
+                    ? canRaiseBid
+                      ? 'Higher bid available'
+                      : 'Bid recorded'
                     : 'Bid entry available'}
               </span>
             )}
@@ -139,7 +147,7 @@ export function VehicleCard({
           <div className="vehicle-card__action">
             <span data-tone={reserveTone}>{vehicle.bid.reserveStatus}</span>
             <strong>
-              Inspect vehicle{' '}
+              {canRaiseBid ? 'Review and raise bid' : 'Inspect vehicle'}{' '}
               <span aria-hidden="true">→</span>
             </strong>
           </div>

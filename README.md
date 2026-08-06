@@ -60,7 +60,9 @@ Vite prints the local preview URL in the terminal.
 - Canonical `/vehicles/:vehicleId` detail routes with gallery, specifications, condition report, damage, seller, location, VIN, and lot information.
 - Null-safe, failure-safe vehicle photography with a stable loading frame and fallback state.
 - One shared semantic bid dialog for the desktop rail and mobile sticky action.
-- Inline bid validation, an explicit review step, and immediate session updates to current bid, bid count, reserve state, and `Your bid` attribution.
+- Inline bid validation, an explicit review step, and immediate session updates to current bid, bid count, reserve state, and buyer position.
+- Reserve-aware self-raising while the reserve remains unmet, followed by an explicit ownership lock when the reserve is met or absent.
+- A session-scoped `/bids` view with one row per vehicle the buyer has bid on, a unique-vehicle navigation count, clear current-bid ownership, and canonical links back to each auction record.
 - Deliberate empty, scheduled-auction, missing-vehicle, missing-image, and title-risk states.
 
 ## Product direction
@@ -71,13 +73,15 @@ The visual language joins an inspection docket with a live auction board: cool n
 
 The primary journey stays intentionally narrow:
 
-`Find inventory → inspect a vehicle → review a bid → place the bid → see the result`
+`Find inventory → inspect a vehicle → place or raise a bid → see the reserve-aware result → review My bids`
 
 ## Notable decisions
 
 ### Keep bid rules outside React
 
-Formatting, catalog normalization, auction state, reserve state, search/filtering, and bid validation live in the domain layer. Bid acceptance is a pure immutable transition, while a small route-level hook owns session state. This keeps the behavior testable and provides a clean starting point for a reducer or server-backed store without requiring global state for this prototype.
+Formatting, catalog normalization, auction state, reserve state, search/filtering, bid validation, and repeat-bid eligibility live in the domain layer. Bid acceptance is a pure immutable transition, while a small route-level hook owns session state. This keeps the behavior testable and provides a clean starting point for a reducer or server-backed store without requiring global state for this prototype.
+
+The application creates one anonymous `userId` for the current browser session and retains one latest bid record per user and vehicle. A first bid creates that immutable record; an accepted raise replaces it with a new record containing the new ID, amount, and ISO timestamp. An incoming ID matching a retained record remains invalid, while production-grade lifetime idempotency belongs on the server. A prior bidder may submit another minimum-valid bid only while the vehicle's current public reserve status is `Reserve not met`; `Reserve met` and `No reserve` lock further self-bidding. `You hold the current bid` appears only when the current auction bid's owner ID matches the active user ID—equal amounts alone never imply ownership. Supplied catalog bids have an unknown owner.
 
 ### Route by vehicle ID, not lot number
 
@@ -95,6 +99,10 @@ The supplied seven-day schedule is shifted deterministically relative to the cur
 
 The desktop auction rail and mobile sticky action open the same native dialog and form. Entry, review, and success remain isolated from the dense vehicle record, with Escape/cancel support, background scroll locking, and focus restoration to the exact launcher.
 
+### Derive My bids from session state
+
+`My bids` filters the retained user-bid records by the active `userId`, then joins them to the same immutable vehicle collection used by inventory and detail routes. The result retains stable vehicle order and one row per bid vehicle without a separate mutable view store. The anonymous user ID, navigation count, records, and view reset with the rest of the prototype on refresh.
+
 ### Treat incomplete image data as normal input
 
 Null and empty image entries are discarded during normalization. The gallery separately tracks loaded and failed primary images, recognizes already-cached images, and preserves the layout with a labeled fallback when photography is unavailable.
@@ -103,6 +111,8 @@ Null and empty image entries are discarded during normalization. The gallery sep
 
 - All monetary values are CAD because the catalog contains Canadian locations but no currency field.
 - The minimum bid is the starting bid when no bid exists, otherwise the current bid plus `$500`.
+- The in-memory `userId` is an anonymous prototype identity, not authentication. A backend can replace its source with the authenticated user's ID without changing the bid ownership rules.
+- The prototype accepts reserve-aware self-raises while the current public status is `Reserve not met`; repeat bids lock for `Reserve met` and `No reserve`. Competing-bid updates, outbid detection, and server-authoritative auction position remain future work.
 - A normalized auction whose start time has passed is open for bidding; a scheduled auction cannot accept bids.
 - Bid changes are session-only and reset on refresh. No persistence is implied.
 - The source JSON is treated as immutable input and normalized in application code.
@@ -124,7 +134,7 @@ src/
   domain/               normalization and pure business rules
   features/inventory/   search, filters, and vehicle cards
   features/vehicle/     detail record, gallery, and auction rail
-  features/bidding/     bid dialog and session-state adapter
+  features/bidding/     bid dialog, current-bid view, and session-state adapter
   styles/               global tokens and application styles
   test/                 shared test setup and factories
 ```
@@ -140,11 +150,11 @@ npm run lint
 npm run build
 ```
 
-The final automated run passes 93 tests across 14 files, TypeScript, OXLint, and the production build.
+The final automated run passes 125 tests across 15 files, TypeScript, OXLint, and the production build.
 
-The automated suite covers catalog validation and normalization, search/filter behavior, auction and reserve rules, immutable bid transitions, routing, gallery loading/failure behavior, responsive launchers, dialog validation/review/success, focus management, and visible session updates.
+The automated suite covers catalog validation and normalization, search/filter behavior, auction and reserve rules, immutable latest-bid replacement, user-ID ownership, unknown catalog owners, reserve-aware repeat eligibility, stable My-bids joins, routing, gallery loading/failure behavior, responsive launchers, dialog validation/review/success, focus management, refresh reset, and visible session updates.
 
-The final manual pass exercises search, combined filters, empty results, detail navigation, gallery controls, invalid and valid bids, refresh behavior, keyboard focus, and responsive layouts at 375px, 768px, and 1440px. The browser-loaded styles were also checked for the global `prefers-reduced-motion` override. A clean-directory `npm ci` and startup check confirms the documented setup.
+The final manual pass exercises search, combined filters, empty results, detail navigation, gallery controls, invalid and valid bids, an eligible raise, the reserve-clearing lock, current-bid ownership, the empty and populated `My bids` views, canonical return navigation, refresh behavior, keyboard focus, and responsive layouts at 375px, 768px, and 1440px. The browser-loaded styles were also checked for the global `prefers-reduced-motion` override. A clean-directory `npm ci` and startup check confirms the documented setup.
 
 ## AI-assisted workflow
 
@@ -154,7 +164,7 @@ They assisted with bounded implementation phases, test creation, UX and code-rev
 
 ## What I would add next
 
-1. A server-authoritative auction API with authenticated buyers, concurrency control, idempotent bid submission, and realtime updates.
+1. Replace the anonymous `userId` source with authenticated server identity, then add a server-authoritative auction API with concurrency control, idempotent bid submission, realtime updates, and trustworthy competing-bid/outbid states.
 2. Durable bid history, audit events, and production reserve enforcement without exposing private seller data.
 3. End-to-end and visual-regression coverage across supported browsers and mobile devices.
 4. Production image delivery, telemetry, error reporting, and performance budgets.
@@ -162,4 +172,4 @@ They assisted with bounded implementation phases, test creation, UX and code-rev
 
 ## Walkthrough
 
-The recommended demo uses lot `D-0037`, a 2025 Volkswagen Tiguan with an active bid, clean title, strong condition grade, no reported damage, and an unmet reserve. See [the walkthrough notes](docs/WALKTHROUGH_NOTES.md) for the five-minute path and technical talking points.
+The recommended demo uses lot `B-0004`, a 2025 Subaru Outback whose bid state moves from an eligible reserve-unmet raise to a reserve-clearing lock in two minimum-valid steps. Its rebuilt title and reported damage also demonstrate the condition-first hierarchy. See [the walkthrough notes](docs/WALKTHROUGH_NOTES.md) for the five-minute path and technical talking points.

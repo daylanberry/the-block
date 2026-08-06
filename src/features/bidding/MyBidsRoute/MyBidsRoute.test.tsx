@@ -169,4 +169,5 @@ describe('My bids route', () => {
       }),
     ).toHaveAttribute('href', '/vehicles/bid-with-failed-image')
   })
+
 })

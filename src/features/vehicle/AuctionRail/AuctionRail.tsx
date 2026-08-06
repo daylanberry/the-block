@@ -3,7 +3,7 @@ import {
   formatAuctionStart,
   formatCurrency,
 } from '../../../domain/formatters'
-import { isCurrentUserBid } from '../../../domain/bidding'
+import { getUserBidAction } from '../../../domain/bidding'
 import { getReserveTone } from '../../../domain/statusTone'
 import type { Bid, Vehicle } from '../../../domain/types'
 import { BidDialog } from '../../bidding/BidDialog/BidDialog'
@@ -26,7 +26,7 @@ export function AuctionRail({
 }: AuctionRailProps) {
   const auctionStatus = getAuctionStatus(vehicle.auctionStart, now)
   const hasCurrentBid = vehicle.bid.currentBid !== null
-  const buyerHasBid = userBid !== undefined || isCurrentUserBid(vehicle, userId)
+  const userBidAction = getUserBidAction(vehicle, userId, userBid)
   const displayedBid =
     vehicle.bid.currentBid?.amount ?? vehicle.startingBid
   const minimumBid = getMinimumBid({
@@ -80,7 +80,7 @@ export function AuctionRail({
           <dt>Reserve</dt>
           <dd data-tone={reserveTone}>{vehicle.bid.reserveStatus}</dd>
         </div>
-        {auctionStatus === 'Open' && !buyerHasBid ? (
+        {auctionStatus === 'Open' && userBidAction !== 'locked' ? (
           <div>
             <dt>Next valid bid</dt>
             <dd>

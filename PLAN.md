@@ -17,7 +17,8 @@ Primary demo journey:
 3. Open a dedicated vehicle detail route.
 4. Review photos, specs, condition, damage, title, location, and seller.
 5. Enter and confirm a valid bid.
-6. See the current bid, bid count, and a visible "Your bid" state update immediately.
+6. See the current bid, bid count, and ownership state update immediately; if the reserve remains unmet, retain one clear way to raise the bid, otherwise remove redundant self-bidding.
+7. Open `My bids` to review every vehicle bid on in this session.
 
 ## Scope
 
@@ -37,6 +38,8 @@ Primary demo journey:
   - dealership, city/province, VIN, and lot
 - Focused bid dialog with minimum-bid guidance, inline validation, one confirmation step, and a success state.
 - Bid changes reflected in both the detail view and inventory data during the session.
+- Reserve-aware same-user raises while the reserve remains unmet, with repeat bidding locked for `Reserve met` and `No reserve`.
+- A session-scoped `My bids` view showing every vehicle on which the current prototype user has bid and the latest accepted amount for each.
 - Responsive behavior at phone and desktop widths.
 - Clear local setup and decision documentation in the final README.
 
@@ -66,8 +69,14 @@ Primary demo journey:
 - Normalize the stale seven-day `auction_start` schedule deterministically by mapping its final calendar day to tomorrow and preserving every day/time offset.
 - Label time honestly as `Auction starts` or `Open`; the dataset has no auction end time or timezone, so do not claim an auction is "ending soon."
 - Auctions whose normalized start has passed may accept bids. Sort open vehicles first so the core flow is immediately available.
-- Keep client-side bid state in a route-level session hook, with bid transitions handled by a pure domain function. Persist it locally only if that remains simple, and clearly label persistence as prototype-only.
-- Recommended walkthrough vehicle: lot `D-0037` (2025 Volkswagen Tiguan), which has an active bid, clean title, no reported damage, a strong grade, and an unmet reserve.
+- Create one anonymous `userId` at the application root for the current browser session. Do not persist it: refreshing deliberately creates a new prototype user, restores the original catalog, and clears `My bids`.
+- Keep client-side auction state and one latest user-bid record per `(vehicleId, userId)` in one route-level session hook, with bid transitions handled by a pure domain function. Each retained record contains an `id`, `vehicleId`, `userId`, `amount`, and ISO `placedAt` timestamp.
+- Treat supplied catalog bids as auction activity with an unknown owner. When the prototype user bids, update the current bid amount and owner `userId`; determine ownership only by comparing IDs, never by comparing monetary values.
+- Derive `My bids` by joining the single retained record for each current-user vehicle back to vehicles in stable catalog order; do not store a second view-specific history model.
+- Keep first-bid eligibility unchanged. For a user with an existing record or current-bid ownership, allow another minimum-valid bid only while the vehicle's current public reserve status is exactly `Reserve not met`. Lock repeat bidding for `Reserve met` and `No reserve`.
+- Every accepted raise immutably replaces that user's retained vehicle record with the new ID, amount, and timestamp, increments the shared bid count, updates current-bid ownership, and derives the next public reserve status without exposing the reserve price. Durable bid-event history remains a production backend responsibility.
+- If a prior bidder no longer has evidenced current ownership, never claim that their bid is highest. While the reserve remains unmet, use neutral `Bid recorded` language with an available higher-bid path; competing-bid simulation and realtime outbid behavior remain out of scope.
+- Recommended walkthrough vehicle: lot `B-0004` (2025 Subaru Outback), whose active bid and unmet reserve demonstrate one eligible raise followed by a reserve-clearing raise in two `$500` steps. Its rebuilt title and damage notes also keep the condition-first product decision visible during the bid demo.
 
 ## Design Direction
 
@@ -86,7 +95,7 @@ The memorable visual idea should be that the interface feels like an inspection 
 ## Technical Shape
 
 - React + Vite + TypeScript.
-- Wouter for lightweight inventory and `/vehicles/:vehicleId` detail routes.
+- Wouter for lightweight inventory, `/vehicles/:vehicleId` detail, and `/bids` current-session routes.
 - Custom CSS with variables and a small token system; avoid a large UI framework.
 - A minimal icon package only if needed.
 - Build-time JSON import; no API layer for a static 200-record dataset.
@@ -96,7 +105,9 @@ The memorable visual idea should be that the interface feels like an inspection 
   - auction status
   - reserve status
   - minimum-bid calculation and validation
-- A small route-level session hook backed by a pure bid domain transition; avoid context and global-state libraries until multiple nested consumers justify them.
+  - reserve-aware buyer bid eligibility and current user-bid lookup
+- A small route-level session hook backed by a pure bid domain transition; it owns immutable auction updates and one latest bid record per user and vehicle. Avoid context and global-state libraries until multiple nested consumers justify them.
+- A derived `My bids` collection joined from the retained current-user bid records and vehicle catalog; do not introduce a second mutable store for the view.
 - One semantic bid dialog shared by the desktop rail and mobile launcher; do not duplicate the form.
 - Vitest and React Testing Library for a few high-value behavioral tests.
 
@@ -177,7 +188,7 @@ Exit: every core detail requirement is present with clear risk hierarchy.
 - [x] Show the correct minimum in CAD.
 - [x] Validate empty, nonnumeric, and below-minimum bids inline.
 - [x] Add one review/confirmation step before committing the bid.
-- [x] Update current bid, count, reserve state, and `Your bid` state immediately.
+- [x] Update current bid, count, reserve state, and buyer ownership state immediately.
 - [x] Add one behavioral test covering a successful bid and visible update.
 
 Exit: the complete browse → inspect → bid journey works without a backend.
@@ -225,6 +236,49 @@ Exit: the experience feels deliberate, readable, and usable rather than merely c
 
 Exit: another engineer can clone the fork, run it from the README, and reproduce the core journey.
 
+### Phase 7 — My bids and bid ownership
+
+- [x] Generate one session-scoped anonymous `userId` at the application root and pass it into the bid-state boundary so a future authenticated user ID can replace only that source.
+- [x] Replace `vehicle.bid.yourBid` with explicit immutable bid records containing `id`, `vehicleId`, `userId`, `amount`, and an ISO `placedAt` timestamp; rejected attempts must not create records or reuse an existing bid ID.
+- [x] Represent the current auction bid with its amount and nullable owner `userId`; supplied catalog bids have an unknown owner, while an accepted prototype bid records the current `userId`.
+- [x] Derive one `My bids` entry per accepted record whose `userId` matches the current user, joined to vehicles in stable catalog order.
+- [x] Add a clear `My bids` destination to the existing navigation without introducing an account menu or dashboard shell.
+- [x] Show the vehicle photo or fallback, year/make/model/trim, lot, the user's bid, bid count, reserve state, and auction state using the latest in-memory vehicle data.
+- [x] Link every entry back to its canonical `/vehicles/:vehicleId` detail route with one clear `View vehicle` action.
+- [x] Preserve stable catalog order so the view stays fully derived and deterministic; do not add a separate activity ledger solely for sorting.
+- [x] Add an intentional empty state explaining that bids are retained only for the current session, with one `Browse inventory` action.
+- [x] Show `You hold the current bid` only when the current bid's owner `userId` equals the active `userId`; never infer ownership from equal amounts.
+- [x] At Phase 7 completion, remove both desktop and mobile bid launchers after the active user has one accepted bid record or already owns the current-bid snapshot for that vehicle, and defensively reject every later attempt in the pure domain transition. Phase 8 supersedes this only for reserve-unmet raises.
+- [x] At Phase 7 completion, keep all rebidding, competing-bid updates, and realtime position changes out of the frontend-only prototype. Phase 8 adds reserve-aware self-raising without adding competing bidders or realtime outbid behavior.
+- [x] Confirm that an accepted bid appears immediately, the ownership status replaces the launcher without interrupting bid success, and refresh creates a new anonymous user with empty session bid state.
+- [x] Add focused tests for user-ID ownership, unknown catalog owners, immutable bid creation, empty state, multiple vehicles, repeated-bid rejection, canonical detail links, and refresh reset.
+- [x] Rerun tests, typecheck, lint, build, diff checks, and the documentation review; repeat browser QA if the localhost browser is available.
+
+Exit: the live flow lets a reviewer place one direct bid on multiple vehicles, see ownership derived from explicit user identity, review the active user's bid records, and return to the right auction record without implying authentication, auction results, or durable persistence.
+
+Phase 8 supersedes Phase 7's one-direct-bid lock and append-only client ledger while preserving its anonymous identity, ownership, immutable state updates, and session-reset decisions.
+
+### Phase 8 — Reserve-aware self-raising
+
+- [x] Update `PLAN.md`, `DESIGN.md`, `README.md`, and walkthrough guidance so reserve-aware repeat bidding replaces the active one-shot rule without rewriting Phase 7's historical outcome.
+- [x] Add one shared domain eligibility result for `place`, `raise`, or `locked` so `applyBid` and the UI cannot disagree about repeat-bid availability.
+- [x] Keep scheduled-auction, missing-vehicle, below-minimum, and retained duplicate bid-ID rejection unchanged; lifetime idempotency belongs to the future server-authoritative API.
+- [x] Allow a user with a prior bid record or current-bid ownership to submit another bid only when the vehicle's current reserve status is `Reserve not met`; keep first-time bidders unaffected.
+- [x] Accept a reserve-clearing raise, immutably replace the user's retained vehicle record, increment the bid count, update current-bid ownership, and block the following self-bid once the public status becomes `Reserve met`.
+- [x] Block repeat bids for `Reserve met` and `No reserve` without changing either session array or exposing the exact reserve price.
+- [x] Keep exactly one retained record per `(vehicleId, userId)` so `getUserBidForVehicle` can use a direct lookup while `getUserBidEntries` preserves one `My bids` row per vehicle and stable catalog order.
+- [x] Confirm `App`, `InventoryRoute`, `useBidSessionState`, and `MyBidsRoute` receive the replaced bid automatically; use a new generated ID and timestamp for each accepted raise.
+- [x] Add a reserve-unmet ownership state to the shared bid UI: `You hold the current bid` / `Reserve not met — you can raise your bid`, with active desktop and mobile `Raise your bid` launchers and the next minimum in CAD.
+- [x] For a prior record without current ownership, use neutral `Bid recorded` / `Reserve not met — you can place a higher bid` copy while the same raise action remains available; do not invent an outbid event. If the public state locks further bidding, keep the copy neutral instead of showing the current-owner treatment.
+- [x] Retain `You hold the current bid` / `No action needed` with no launcher for `Reserve met` and `No reserve`.
+- [x] Show `Next valid bid` in the auction rail for initial bids and eligible raises; keep the inventory card as one detail link with no nested bid action.
+- [x] Keep `My bids` at one row and one navigation count per vehicle while showing the user's retained accepted amount.
+- [x] Preserve focus behavior: a below-reserve success returns to the still-available raise launcher, while a reserve-clearing success moves focus to the replacement ownership note.
+- [x] Add domain, hook, component, and journey tests for repeated raises, immutable record replacement, reserve transitions, no-reserve locking, responsive launchers, and both focus outcomes.
+- [x] Rerun tests, typecheck, lint, build, diff checks, and 375/768/1440 browser QA without adding competing bidders, changing the `$500` increment, revealing reserve price, or expanding Buy Now/checkout scope.
+
+Exit: a reviewer can raise their own current bid while the reserve remains unmet, see the latest amount everywhere, and encounter an explicit lock once the reserve is met or absent, with no claim of realtime competition or durable auction finality.
+
 Treat the conditional stretch and optional motion as the first cuts if scope needs to be reduced; preserve the core bid feedback, responsive QA, and README.
 
 ## Acceptance Checklist
@@ -233,15 +287,18 @@ Treat the conditional stretch and optional motion as the first cuts if scope nee
 - [x] All 200 vehicles are available to browse.
 - [x] Search and body-style filtering work together and can be cleared.
 - [x] Every vehicle has a navigable detail view containing all required information.
-- [x] First bids and subsequent bids enforce the correct $500 increment rule.
-- [x] A successful bid updates amount and count and remains visibly attributable to the current prototype user.
+- [x] A first bid and every eligible raise enforce the same `$500` increment from the current bid.
+- [x] The same user can raise a bid while the current reserve status is `Reserve not met`; repeat bidding is rejected for `Reserve met` and `No reserve`.
+- [x] Every successful initial or repeat bid creates a new immutable record object, replaces the prior retained user-vehicle record when present, and updates the current amount, bid count, owner, and public reserve status atomically.
+- [x] `My bids` shows each vehicle with a current session bid exactly once, uses the retained user-bid record, and links back to its detail route.
+- [x] Refresh clears `My bids` and restores the original catalog with an honest session-only empty state.
 - [x] No UI exposes an exact reserve amount or offers a nonfunctional Buy Now action.
 - [x] Null and empty data render as deliberate states, not blank space or `null`.
-- [x] The core journey works at 375px and 1440px without horizontal overflow.
-- [x] The desktop and mobile bid launchers open the same dialog, and closing it returns focus to the launcher.
+- [x] The reserve-aware journey works at 375px and 1440px without horizontal overflow.
+- [x] The desktop and mobile launchers open the same dialog; closing returns focus to the raise launcher while the reserve remains unmet, or to the ownership status when a reserve-clearing bid removes it.
 - [x] Focus lifecycle, labels, semantic structure, image alt text, and key color contrast have been checked.
 - [ ] Native Tab traversal and OS/browser reduced-motion preference emulation have been checked.
-- [x] Tests, type-checking, linting, and production build pass.
+- [x] Phase 8 tests, type-checking, linting, and production build pass.
 - [x] The repository contains no secrets, generated junk, or abandoned UI attempts.
 - [ ] Phase 6 changes are committed and the working tree is clean; intentionally left for owner diff review.
 
@@ -269,10 +326,12 @@ Update this table at each phase boundary; record actual results rather than inte
 | 1 — Domain and data layer                | Codex | Complete         | Runtime-validated 200-vehicle catalog, display normalization, rolling seven-day schedule, auction/reserve/bid rules, and inventory query helpers                                                                                                                                                                           | 32 tests, typecheck, OXLint, build, clean audit, and localhost smoke test                                                                                                                                                                                                                     | `5c64fa4`                               |
 | 2 — Inventory experience                 | Codex | Complete         | Searchable 200-lot inventory, live open-first ordering, risk-forward vehicle cards, detail links, and deliberate empty/image-fallback states                                                                                                                                                                               | 39 tests, typecheck, OXLint, build, clean audit, interaction smoke test, and 375/768/1440 browser QA                                                                                                                                                                                          | `00e2b2a`, `e0db903`                    |
 | 3 — Vehicle detail experience            | Codex | Complete         | Vehicle-ID detail routes, null-safe gallery and cards, read-only auction rail, complete specs and seller data, plus explicit risk, conflicting-data, null, and missing-vehicle states                                                                                                                                      | 58 tests, typecheck, OXLint, build, clean audit, gallery interaction smoke test, and 375/768/1440 browser QA                                                                                                                                                                                  | `27eafd8`, `af51dc4`                    |
-| 4 — Bid flow                             | Codex | Complete         | Vehicle-ID session state, private reserve derivation, inline entry/review/success flow, guarded bid acceptance, and synchronized `Your bid` state across detail and inventory                                                                                                                                              | 72 tests, typecheck, OXLint, build, clean audit, invalid/review/success/navigation smoke tests, and 375/768/1440 browser QA                                                                                                                                                                   | `6fa55c8`                               |
+| 4 — Bid flow                             | Codex | Complete         | Vehicle-ID session state, private reserve derivation, inline entry/review/success flow, guarded bid acceptance, and synchronized session bid state across detail and inventory                                                                                                                                             | 72 tests, typecheck, OXLint, build, clean audit, invalid/review/success/navigation smoke tests, and 375/768/1440 browser QA                                                                                                                                                                   | `6fa55c8`                               |
 | 4A — Focused bid dialog                  | Codex | Complete         | Summary-only auction rail, one native entry/review/success dialog, responsive desktop/mobile launchers, guarded acceptance, and complete modal focus/scroll cleanup                                                                                                                                                        | 77 tests, typecheck, OXLint, build, clean audit, invalid/review/cancel/Escape/success/focus smoke tests, scheduled-lot check, and 375/768/1440 browser QA                                                                                                                                     | `6fa55c8`                               |
 | 5 — Craft, responsiveness, accessibility | Codex | Manual follow-up | Softened surface hierarchy, cached-gallery loading, route-heading focus, stronger contrast, explicit content groups, corrected mobile launcher clearance, centralized status rules, compressed inventory hero, photo-first cards, compact auction overlays, independent filter chips, and a scroll-aware mobile bid action | 91 tests, typecheck, OXLint, build, diff check, and 375/641/768/1440 Browser QA; visible focus, semantics, labels, alt text, contrast, dialog behavior, fallback states, image loading, controls, and overflow checked; native Tab traversal and OS reduced-motion emulation remain manual    | `62081a9`                               |
 | 6 — Verification and submission package  | Codex | Complete         | Archived the original brief verbatim, replaced the root README with reviewer setup and decisions, added walkthrough notes, updated source paths, and strengthened transient mobile-action contrast                                                                                                                         | Clean archive: `npm ci` with 0 vulnerabilities; 93 tests in 14 files, typecheck, OXLint, and build pass; dev and preview root/deep-route startup plus 375/768/1440 Browser journey, scheduled state, refresh reset, console, semantics, contrast, documentation-link, secret, and junk audits | Uncommitted for owner review            |
+| 7 — My bids and bid ownership            | Codex | Complete         | Session-scoped anonymous `userId`, immutable bid records, owner-bearing current-bid snapshots, a stable vehicle join for `/bids`, identity-based ownership, one direct bid per user/vehicle, shared image fallback behavior, and an honest refresh reset | 111 tests in 15 files, typecheck, OXLint, build, diff check, and user-ID/unknown-owner/immutable-record/repeated-bid/ownership/refresh coverage; prior browser journeys verified focus handoff and 375/768/1440 layouts without horizontal overflow | Uncommitted for owner review            |
+| 8 — Reserve-aware self-raising           | Codex | Complete         | Shared `place`/`raise`/`locked` domain eligibility, one immutably replaced user-bid record per vehicle, responsive raise launchers, honest owner/neutral lock states, and one current `My bids` row per vehicle | 125 tests in 15 files, typecheck, OXLint, build, and diff check; live two-bid reserve transition, exact focus handoffs, console, and no-overflow QA passed at 375/768/1440 | Uncommitted for owner review            |
 
 ## Walkthrough Story
 
@@ -280,10 +339,10 @@ The implementation should support this concise narrative:
 
 - **Product decision:** condition and title risk are promoted because wholesale buyers need confidence before price action.
 - **Scope decision:** one excellent buyer journey was prioritized over accounts, backend simulation, or broad marketplace features.
-- **Technical decision:** pure domain transitions and a thin route-level session hook keep bid behavior testable without production infrastructure.
+- **Technical decision:** pure domain transitions, shared reserve-aware eligibility, and a thin route-level session hook keep bid behavior testable without production infrastructure.
 - **Data decision:** stale start dates and missing auction ends were handled transparently instead of inventing false countdowns.
 - **Workflow decision:** AI accelerated implementation and review, while scope, tradeoffs, verification, and final ownership remained explicit.
 
 ## Stop Condition
 
-Do not submit merely because the UI looks polished. The work is ready only when the minimum journey, responsive states, bid validation/update, tests, clean-clone instructions, and walkthrough explanation are all complete.
+Do not submit merely because the UI looks polished. The work is ready only when the minimum journey, reserve-aware raise/lock states, responsive behavior, bid validation/update, current-user `My bids` view, tests, clean-clone instructions, and walkthrough explanation are all complete.

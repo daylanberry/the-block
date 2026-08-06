@@ -41,6 +41,23 @@
   background: var(--color-muted);
 }
 
+.bid-dialog__ownership--raise {
+  min-height: 4.5rem;
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+  border-top-color: rgb(138 87 0 / 40%);
+}
+
+.bid-dialog__ownership--raise > span {
+  color: var(--color-warning-soft);
+  background: var(--color-warning);
+}
+
+.bid-dialog__ownership--raise + .bid-dialog__rail-launcher-wrap {
+  padding-top: var(--space-3);
+  border-top-color: rgb(138 87 0 / 24%);
+}
+
 .bid-dialog__ownership strong,
 .bid-dialog__ownership small {
   display: block;

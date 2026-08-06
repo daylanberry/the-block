@@ -95,36 +95,56 @@ describe('bid dialog', () => {
     vi.useRealTimers()
   })
 
-  it('replaces both launchers with a noninteractive ownership state', () => {
-    render(
+  it('keeps both launchers active when the current user can raise an unmet-reserve bid', () => {
+    const vehicle = makeVehicle({
+      bid: {
+        currentBid: { amount: 30_000, userId },
+        bidCount: 9,
+        reserveStatus: 'Reserve not met',
+      },
+    })
+    const { container } = render(
       <BidDialog
-        vehicle={makeVehicle({
-          bid: { currentBid: { amount: 30_000, userId } },
-        })}
+        vehicle={vehicle}
+        userBid={makeBid({ amount: 30_000 })}
         userId={userId}
         onPlaceBid={vi.fn()}
       />,
     )
 
     expect(screen.getByRole('note')).toHaveTextContent(
-      'You hold the current bid',
+      'You hold the current bidReserve not met — you can raise your bid',
     )
     expect(
-      screen.queryByRole('button', { name: 'Place a bid' }),
-    ).not.toBeInTheDocument()
+      screen.getByRole('button', { name: 'Raise your bid' }),
+    ).toBeInTheDocument()
     expect(
       document.querySelector('.bid-dialog__mobile-launcher'),
-    ).not.toBeInTheDocument()
+    ).toHaveAttribute('aria-label', 'Raise your bid')
+    expect(screen.getAllByText('Minimum $30,500 CAD')).toHaveLength(2)
+
+    const trigger = container.querySelector(
+      '.bid-dialog__rail-launcher',
+    ) as HTMLButtonElement
+    fireEvent.click(trigger)
+
+    expect(
+      screen.getByRole('dialog', { name: 'Raise your bid' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: 'Your bid (CAD)' }),
+    ).toHaveAttribute('placeholder', '30,500')
   })
 
-  it.each([
-    null,
-    { amount: 30_500, userId: 'user-2' },
-  ])('keeps any recorded-bid state safely unavailable: %o', (currentBid) => {
+  it('keeps a neutral prior bid raiseable while reserve remains unmet', () => {
     render(
       <BidDialog
         vehicle={makeVehicle({
-          bid: { currentBid },
+          bid: {
+            currentBid: { amount: 30_500, userId: 'user-2' },
+            bidCount: 10,
+            reserveStatus: 'Reserve not met',
+          },
         })}
         userBid={makeBid({ userId, amount: 30_000 })}
         userId={userId}
@@ -134,12 +154,79 @@ describe('bid dialog', () => {
 
     expect(screen.getByRole('note')).toHaveTextContent('Bid recorded')
     expect(screen.getByRole('note')).toHaveTextContent(
-      'One bid per vehicle this session',
+      'Reserve not met — you can place a higher bid',
     )
     expect(
-      screen.queryByRole('button', { name: 'Place a bid' }),
-    ).not.toBeInTheDocument()
+      screen.getByRole('button', { name: 'Raise your bid' }),
+    ).toBeInTheDocument()
+    expect(
+      document.querySelector('.bid-dialog__mobile-launcher'),
+    ).toHaveAttribute('aria-label', 'Raise your bid')
+    expect(screen.getAllByText('Minimum $31,000 CAD')).toHaveLength(2)
   })
+
+  it.each(['Reserve met', 'No reserve'] as const)(
+    'locks both launchers once the buyer holds a %s bid',
+    (reserveStatus) => {
+      render(
+        <BidDialog
+          vehicle={makeVehicle({
+            bid: {
+              currentBid: { amount: 30_000, userId },
+              bidCount: 9,
+              reserveStatus,
+            },
+          })}
+          userBid={makeBid({ amount: 30_000 })}
+          userId={userId}
+          onPlaceBid={vi.fn()}
+        />,
+      )
+
+      expect(screen.getByRole('note')).toHaveTextContent(
+        'You hold the current bidNo action needed',
+      )
+      expect(
+        screen.queryByRole('button', { name: 'Raise your bid' }),
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: 'Place a bid' }),
+      ).not.toBeInTheDocument()
+      expect(
+        document.querySelector('.bid-dialog__mobile-launcher'),
+      ).not.toBeInTheDocument()
+    },
+  )
+
+  it.each(['Reserve met', 'No reserve'] as const)(
+    'keeps a locked prior bid neutral when the current owner is different: %s',
+    (reserveStatus) => {
+      render(
+        <BidDialog
+          vehicle={makeVehicle({
+            bid: {
+              currentBid: { amount: 30_500, userId: 'user-2' },
+              bidCount: 10,
+              reserveStatus,
+            },
+          })}
+          userBid={makeBid({ userId, amount: 30_000 })}
+          userId={userId}
+          onPlaceBid={vi.fn()}
+        />,
+      )
+
+      expect(screen.getByRole('note')).toHaveTextContent(
+        `Bid recorded${reserveStatus} — further bidding unavailable`,
+      )
+      expect(screen.getByRole('note')).not.toHaveTextContent(
+        'No action needed',
+      )
+      expect(
+        screen.queryByRole('button', { name: 'Raise your bid' }),
+      ).not.toBeInTheDocument()
+    },
+  )
 
   it.each([
     ['', 'Enter a bid amount.'],
@@ -255,6 +342,127 @@ describe('bid dialog', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(trigger).toHaveFocus()
     expect(document.documentElement.style.overflow).toBe('')
+  })
+
+  it.each([
+    ['Reserve not met', 'launcher'],
+    ['Reserve met', 'ownership'],
+  ] as const)(
+    'restores focus to the %s destination after a successful raise',
+    (reserveStatus, focusDestination) => {
+      const onPlaceBid = vi.fn(() => true)
+      const initialVehicle = makeVehicle({
+        bid: {
+          currentBid: { amount: 30_000, userId },
+          bidCount: 9,
+          reserveStatus: 'Reserve not met',
+        },
+      })
+      const initialUserBid = makeBid({ amount: 30_000 })
+      const { container, rerender } = render(
+        <BidDialog
+          vehicle={initialVehicle}
+          userBid={initialUserBid}
+          userId={userId}
+          onPlaceBid={onPlaceBid}
+        />,
+      )
+      const trigger = container.querySelector(
+        '.bid-dialog__rail-launcher',
+      ) as HTMLButtonElement
+
+      fireEvent.click(trigger)
+      fireEvent.change(
+        screen.getByRole('textbox', { name: 'Your bid (CAD)' }),
+        { target: { value: '30,500' } },
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Review bid' }))
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Place $30,500 bid' }),
+      )
+
+      rerender(
+        <BidDialog
+          vehicle={makeVehicle({
+            bid: {
+              currentBid: { amount: 30_500, userId },
+              bidCount: 10,
+              reserveStatus,
+            },
+          })}
+          userBid={makeBid({ id: 'bid-2', amount: 30_500 })}
+          userId={userId}
+          onPlaceBid={onPlaceBid}
+        />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+
+      if (focusDestination === 'launcher') {
+        expect(trigger).toHaveFocus()
+        expect(
+          screen.getByRole('button', { name: 'Raise your bid' }),
+        ).toBeInTheDocument()
+        expect(
+          document.querySelector('.bid-dialog__mobile-launcher'),
+        ).toHaveAttribute('aria-label', 'Raise your bid')
+      } else {
+        expect(screen.getByRole('note')).toHaveFocus()
+        expect(
+          screen.queryByRole('button', { name: 'Raise your bid' }),
+        ).not.toBeInTheDocument()
+      }
+    },
+  )
+
+  it('returns focus to the mobile raise launcher when it survives success', () => {
+    const onPlaceBid = vi.fn(() => true)
+    const initialVehicle = makeVehicle({
+      bid: {
+        currentBid: { amount: 30_000, userId },
+        bidCount: 9,
+        reserveStatus: 'Reserve not met',
+      },
+    })
+    const { rerender } = render(
+      <BidDialog
+        vehicle={initialVehicle}
+        userBid={makeBid({ amount: 30_000 })}
+        userId={userId}
+        onPlaceBid={onPlaceBid}
+      />,
+    )
+    const mobileTrigger = document.querySelector(
+      '.bid-dialog__mobile-launcher',
+    ) as HTMLButtonElement
+
+    fireEvent.click(mobileTrigger)
+    fireEvent.change(
+      screen.getByRole('textbox', { name: 'Your bid (CAD)' }),
+      { target: { value: '30,500' } },
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Review bid' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Place $30,500 bid' }),
+    )
+
+    rerender(
+      <BidDialog
+        vehicle={makeVehicle({
+          bid: {
+            currentBid: { amount: 30_500, userId },
+            bidCount: 10,
+            reserveStatus: 'Reserve not met',
+          },
+        })}
+        userBid={makeBid({ id: 'bid-2', amount: 30_500 })}
+        userId={userId}
+        onPlaceBid={onPlaceBid}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+
+    expect(mobileTrigger).toHaveFocus()
+    expect(mobileTrigger).toHaveAttribute('aria-label', 'Raise your bid')
   })
 
   it('returns to entry when the reviewed amount becomes stale', () => {

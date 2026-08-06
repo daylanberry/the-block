@@ -136,7 +136,42 @@ describe('vehicle detail route', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('shows current-bid ownership without offering another self-bid', () => {
+  it('shows the next minimum and an active raise action while reserve is not met', () => {
+    renderVehicle(
+      makeVehicle({
+        bid: {
+          currentBid: { amount: 30_000, userId },
+          bidCount: 9,
+          reserveStatus: 'Reserve not met',
+        },
+      }),
+      makeBid({ userId, amount: 30_000 }),
+    )
+
+    const auctionRail = screen.getByRole('complementary', {
+      name: 'Open for bidding',
+    })
+
+    expect(within(auctionRail).getByText('Next valid bid')).toBeInTheDocument()
+    expect(within(auctionRail).getByText('$30,500')).toBeInTheDocument()
+    expect(within(auctionRail).getByRole('note')).toHaveTextContent(
+      'You hold the current bidReserve not met — you can raise your bid',
+    )
+
+    const raiseTrigger = within(auctionRail).getByRole('button', {
+      name: 'Raise your bid',
+    })
+    fireEvent.click(raiseTrigger)
+
+    expect(
+      screen.getByRole('dialog', { name: 'Raise your bid' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: 'Your bid (CAD)' }),
+    ).toHaveAttribute('placeholder', '30,500')
+  })
+
+  it('shows current-bid ownership without offering another self-bid once reserve is met', () => {
     renderVehicle(
       makeVehicle({
         bid: {

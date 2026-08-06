@@ -10,7 +10,10 @@ import {
 import { createPortal } from "react-dom";
 
 import { getMinimumBid, validateBidAmount } from "../../../domain/auction";
-import { isCurrentUserBid } from "../../../domain/bidding";
+import {
+  getUserBidAction,
+  isCurrentUserBid,
+} from "../../../domain/bidding";
 import { formatCurrency } from "../../../domain/formatters";
 import type { Bid, Vehicle } from "../../../domain/types";
 import "./BidDialog.css";
@@ -61,9 +64,10 @@ export function BidDialog({
   const displayedBidLabel =
     vehicle.bid.currentBid === null ? "Starting bid" : "Current bid";
   const currentUserHoldsBid = isCurrentUserBid(vehicle, userId);
-  const bidActionUnavailable =
-    userBid !== undefined || currentUserHoldsBid;
-  const launcherLabel = "Place a bid";
+  const userBidAction = getUserBidAction(vehicle, userId, userBid);
+  const bidActionUnavailable = userBidAction === "locked";
+  const canRaiseBid = userBidAction === "raise";
+  const launcherLabel = canRaiseBid ? "Raise your bid" : "Place a bid";
 
   useEffect(() => {
     function handleScroll() {
@@ -302,7 +306,7 @@ export function BidDialog({
                 >
                   <div className="bid-dialog__heading">
                     <p>Bid entry / 01</p>
-                    <h2 id={titleId}>Place a bid</h2>
+                    <h2 id={titleId}>{launcherLabel}</h2>
                   </div>
 
                   <dl
@@ -454,18 +458,22 @@ export function BidDialog({
 
   return (
     <>
-      {bidActionUnavailable ? (
+      {userBidAction === "place" ? null : (
         <div
           ref={ownershipRef}
           className={`bid-dialog__ownership${
-            currentUserHoldsBid
-              ? ""
-              : " bid-dialog__ownership--unavailable"
+            canRaiseBid
+              ? " bid-dialog__ownership--raise"
+              : currentUserHoldsBid
+                ? ""
+                : " bid-dialog__ownership--unavailable"
           }`}
           role="note"
           tabIndex={-1}
         >
-          <span aria-hidden="true">{currentUserHoldsBid ? "✓" : "!"}</span>
+          <span aria-hidden="true">
+            {canRaiseBid ? "↑" : currentUserHoldsBid ? "✓" : "!"}
+          </span>
           <div>
             <strong>
               {currentUserHoldsBid
@@ -473,13 +481,18 @@ export function BidDialog({
                 : "Bid recorded"}
             </strong>
             <small>
-              {currentUserHoldsBid
-                ? "No action needed"
-                : "One bid per vehicle this session"}
+              {canRaiseBid
+                ? currentUserHoldsBid
+                  ? "Reserve not met — you can raise your bid"
+                  : "Reserve not met — you can place a higher bid"
+                : currentUserHoldsBid
+                  ? "No action needed"
+                  : `${vehicle.bid.reserveStatus} — further bidding unavailable`}
             </small>
           </div>
         </div>
-      ) : (
+      )}
+      {bidActionUnavailable ? null : (
         <div className="bid-dialog__rail-launcher-wrap">
           <button
             className="bid-dialog__rail-launcher"
