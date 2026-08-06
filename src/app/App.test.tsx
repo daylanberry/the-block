@@ -1,17 +1,21 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { Router } from 'wouter'
 import { memoryLocation } from 'wouter/memory-location'
 
+import { renderWithStore } from '../test/renderWithStore'
 import { App } from './App'
+import { createAppStore } from './store'
 
 function renderRoute(path: string) {
   const { hook } = memoryLocation({ path, static: true })
+  const store = createAppStore({ userId: 'test-user' })
 
-  return render(
+  return renderWithStore(
     <Router hook={hook}>
-      <App userId="test-user" />
+      <App />
     </Router>,
+    store,
   )
 }
 
@@ -61,11 +65,13 @@ describe('application routing', () => {
 
   it('moves focus to the route heading after client-side navigation', () => {
     const { hook, navigate } = memoryLocation({ path: '/' })
+    const store = createAppStore({ userId: 'test-user' })
 
-    render(
+    renderWithStore(
       <Router hook={hook}>
-        <App userId="test-user" />
+        <App />
       </Router>,
+      store,
     )
 
     const main = screen.getByRole('main')
@@ -86,11 +92,13 @@ describe('application routing', () => {
 
   it('moves focus to the My bids heading after client-side navigation', () => {
     const { hook, navigate } = memoryLocation({ path: '/' })
+    const store = createAppStore({ userId: 'test-user' })
 
-    render(
+    renderWithStore(
       <Router hook={hook}>
-        <App userId="test-user" />
+        <App />
       </Router>,
+      store,
     )
 
     act(() => {

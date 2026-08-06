@@ -1,92 +1,70 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { Route, Router, Switch } from "wouter";
+import { act, fireEvent, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Router } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
 
-import {
-  getUserBidForVehicle,
-  type ReserveStatusResolver,
-} from "../../domain/bidding";
-import { findVehicleById } from "../../domain/inventory";
+import { App } from "../../app/App";
+import { createAppStore } from "../../app/store";
+import type { ReserveStatusResolver } from "../../domain/bidding";
+import { renderWithStore } from "../../test/renderWithStore";
 import { makeVehicle } from "../../test/vehicleFactory";
-import { InventoryRoute } from "../inventory/InventoryRoute";
-import { VehicleRoute } from "../vehicle/VehicleRoute";
-import { MyBidsRoute } from "./MyBidsRoute/MyBidsRoute";
-import { useBidSessionState } from "./useBidSessionState";
 
 const referenceTime = new Date(2026, 7, 4, 12);
 const resolveReserveStatus = () => "Reserve met" as const;
 const userId = "journey-user";
 
-interface JourneyRoutesProps {
+interface RenderJourneyOptions {
   initialVehicles: readonly ReturnType<typeof makeVehicle>[];
+  path: string;
   createBidId?: () => string;
   resolveReserve?: ReserveStatusResolver;
 }
 
-function JourneyRoutes({
+function renderJourney({
   initialVehicles,
+  path,
   createBidId = () => "journey-bid",
   resolveReserve = resolveReserveStatus,
-}: JourneyRoutesProps) {
-  const { vehicles, bids, userBidEntries, placeBid } = useBidSessionState({
+}: RenderJourneyOptions) {
+  const { hook, navigate } = memoryLocation({ path });
+  const store = createAppStore({
     userId,
     initialVehicles,
-    resolveReserveStatus: resolveReserve,
-    createBidId,
+    services: {
+      createBidId,
+      now: () => referenceTime,
+      resolveReserveStatus: resolveReserve,
+    },
   });
 
-  return (
-    <Switch>
-      <Route path="/">
-        {() => (
-          <InventoryRoute
-            bids={bids}
-            inventory={vehicles}
-            now={referenceTime}
-            userId={userId}
-          />
-        )}
-      </Route>
-      <Route path="/vehicles/:vehicleId">
-        {(params) => {
-          const vehicle = findVehicleById(vehicles, params.vehicleId);
-          const userBid = vehicle
-            ? getUserBidForVehicle(bids, vehicle.id, userId)
-            : undefined;
-
-          return vehicle ? (
-            <VehicleRoute
-              vehicle={vehicle}
-              now={referenceTime}
-              userBid={userBid}
-              userId={userId}
-              onPlaceBid={(amount) => placeBid(vehicle.id, amount)}
-            />
-          ) : null;
-        }}
-      </Route>
-      <Route path="/bids">
-        {() => <MyBidsRoute entries={userBidEntries} now={referenceTime} />}
-      </Route>
-    </Switch>
+  const view = renderWithStore(
+    <Router hook={hook}>
+      <App />
+    </Router>,
+    store,
   );
+
+  return { ...view, navigate, store };
 }
+
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(referenceTime);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("bid journey", () => {
   it("updates detail state and the matching inventory card in one session", () => {
     const vehicle = makeVehicle({
       auctionStart: new Date(2026, 7, 4, 11),
     });
-    const { hook, navigate } = memoryLocation({
+    const { navigate } = renderJourney({
+      initialVehicles: [vehicle],
       path: `/vehicles/${vehicle.id}`,
     });
-
-    render(
-      <Router hook={hook}>
-        <JourneyRoutes initialVehicles={[vehicle]} />
-      </Router>,
-    );
 
     const bidTrigger = screen.getByRole("button", { name: "Place a bid" });
     fireEvent.click(bidTrigger);
@@ -175,20 +153,15 @@ describe("bid journey", () => {
       .mockReturnValueOnce("journey-bid-1")
       .mockReturnValueOnce("journey-bid-2");
     const resolveReserve = (_vehicleId: string, amount: number) =>
-      amount >= 30_500 ? ("Reserve met" as const) : ("Reserve not met" as const);
-    const { hook, navigate } = memoryLocation({
+      amount >= 30_500
+        ? ("Reserve met" as const)
+        : ("Reserve not met" as const);
+    const { navigate } = renderJourney({
+      createBidId,
+      initialVehicles: [vehicle],
       path: `/vehicles/${vehicle.id}`,
+      resolveReserve,
     });
-
-    render(
-      <Router hook={hook}>
-        <JourneyRoutes
-          createBidId={createBidId}
-          initialVehicles={[vehicle]}
-          resolveReserve={resolveReserve}
-        />
-      </Router>,
-    );
 
     fireEvent.click(screen.getByRole("button", { name: "Place a bid" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Your bid (CAD)" }), {
@@ -216,7 +189,9 @@ describe("bid journey", () => {
       within(raiseDialog).getByRole("textbox", { name: "Your bid (CAD)" }),
       { target: { value: "30,500" } },
     );
-    fireEvent.click(within(raiseDialog).getByRole("button", { name: "Review bid" }));
+    fireEvent.click(
+      within(raiseDialog).getByRole("button", { name: "Review bid" }),
+    );
     fireEvent.click(
       within(raiseDialog).getByRole("button", { name: "Place $30,500 bid" }),
     );

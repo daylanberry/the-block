@@ -1,26 +1,32 @@
-import { useState } from 'react'
 import { Route, Switch } from 'wouter'
 
 import { AppShell } from '../components/AppShell'
 import { getUserBidForVehicle } from '../domain/bidding'
 import { findVehicleById } from '../domain/inventory'
 import { MyBidsRoute } from '../features/bidding/MyBidsRoute/MyBidsRoute'
-import { useBidSessionState } from '../features/bidding/useBidSessionState'
+import {
+  placeBid,
+  selectBids,
+  selectUserBidEntries,
+  selectUserBidVehicleCount,
+  selectUserId,
+  selectVehicles,
+} from '../features/bidding/bidSessionSlice'
 import { InventoryRoute } from '../features/inventory/InventoryRoute'
 import { VehicleRoute } from '../features/vehicle/VehicleRoute'
+import { useAppDispatch, useAppSelector } from './hooks'
 import { NotFoundRoute } from './NotFoundRoute'
 
-interface AppRoutesProps {
-  userId: string
-}
-
-function AppRoutes({ userId }: AppRoutesProps) {
-  const { vehicles, bids, userBidEntries, placeBid } = useBidSessionState({
-    userId,
-  })
+function AppRoutes() {
+  const dispatch = useAppDispatch()
+  const userId = useAppSelector(selectUserId)
+  const vehicles = useAppSelector(selectVehicles)
+  const bids = useAppSelector(selectBids)
+  const userBidEntries = useAppSelector(selectUserBidEntries)
+  const userBidVehicleCount = useAppSelector(selectUserBidVehicleCount)
 
   return (
-    <AppShell userBidVehicleCount={userBidEntries.length}>
+    <AppShell userBidVehicleCount={userBidVehicleCount}>
       <Switch>
         <Route path="/">
           {() => (
@@ -46,7 +52,9 @@ function AppRoutes({ userId }: AppRoutesProps) {
                 vehicle={vehicle}
                 userId={userId}
                 userBid={userBid}
-                onPlaceBid={(amount) => placeBid(vehicle.id, amount)}
+                onPlaceBid={(amount) =>
+                  dispatch(placeBid({ vehicleId: vehicle.id, amount }))
+                }
               />
             ) : (
               <NotFoundRoute
@@ -63,14 +71,6 @@ function AppRoutes({ userId }: AppRoutesProps) {
   )
 }
 
-interface AppProps {
-  userId?: string
-}
-
-export function App({ userId: suppliedUserId }: AppProps) {
-  const [userId] = useState(
-    () => suppliedUserId ?? crypto.randomUUID(),
-  )
-
-  return <AppRoutes userId={userId} />
+export function App() {
+  return <AppRoutes />
 }

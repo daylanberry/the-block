@@ -69,8 +69,8 @@ Primary demo journey:
 - Normalize the stale seven-day `auction_start` schedule deterministically by mapping its final calendar day to tomorrow and preserving every day/time offset.
 - Label time honestly as `Auction starts` or `Open`; the dataset has no auction end time or timezone, so do not claim an auction is "ending soon."
 - Auctions whose normalized start has passed may accept bids. Sort open vehicles first so the core flow is immediately available.
-- Create one anonymous `userId` at the application root for the current browser session. Do not persist it: refreshing deliberately creates a new prototype user, restores the original catalog, and clears `My bids`.
-- Keep client-side auction state and one latest user-bid record per `(vehicleId, userId)` in one route-level session hook, with bid transitions handled by a pure domain function. Each retained record contains an `id`, `vehicleId`, `userId`, `amount`, and ISO `placedAt` timestamp.
+- Create one anonymous `userId` in the application store factory for the current browser session. Do not persist it: refreshing deliberately creates a new prototype user, restores the original catalog, and clears `My bids`.
+- Keep client-side auction state and one latest user-bid record per `(vehicleId, userId)` in one Redux Toolkit session slice. A synchronous command passes the current snapshot to the pure bid transition, and reducers commit only accepted results. Each retained record contains an `id`, `vehicleId`, `userId`, `amount`, and ISO `placedAt` timestamp.
 - Treat supplied catalog bids as auction activity with an unknown owner. When the prototype user bids, update the current bid amount and owner `userId`; determine ownership only by comparing IDs, never by comparing monetary values.
 - Derive `My bids` by joining the single retained record for each current-user vehicle back to vehicles in stable catalog order; do not store a second view-specific history model.
 - Keep first-bid eligibility unchanged. For a user with an existing record or current-bid ownership, allow another minimum-valid bid only while the vehicle's current public reserve status is exactly `Reserve not met`. Lock repeat bidding for `Reserve met` and `No reserve`.
@@ -94,7 +94,7 @@ The memorable visual idea should be that the interface feels like an inspection 
 
 ## Technical Shape
 
-- React + Vite + TypeScript.
+- React + Vite + TypeScript with Redux Toolkit and React Redux for shared auction-session state.
 - Wouter for lightweight inventory, `/vehicles/:vehicleId` detail, and `/bids` current-session routes.
 - Custom CSS with variables and a small token system; avoid a large UI framework.
 - A minimal icon package only if needed.
@@ -106,7 +106,8 @@ The memorable visual idea should be that the interface feels like an inspection 
   - reserve status
   - minimum-bid calculation and validation
   - reserve-aware buyer bid eligibility and current user-bid lookup
-- A small route-level session hook backed by a pure bid domain transition; it owns immutable auction updates and one latest bid record per user and vehicle. Avoid context and global-state libraries until multiple nested consumers justify them.
+- One isolated Redux Toolkit store created at application startup. A synchronous thunk coordinates the pure bid domain transition and returns the dialog's immediate accepted/rejected result; reducers only commit accepted snapshots.
+- Typed hooks and memoized selectors expose shared auction state at the route boundary while inventory, vehicle, and bidding components remain prop-driven.
 - A derived `My bids` collection joined from the retained current-user bid records and vehicle catalog; do not introduce a second mutable store for the view.
 - One semantic bid dialog shared by the desktop rail and mobile launcher; do not duplicate the form.
 - Vitest and React Testing Library for a few high-value behavioral tests.
@@ -267,7 +268,7 @@ Phase 8 supersedes Phase 7's one-direct-bid lock and append-only client ledger w
 - [x] Accept a reserve-clearing raise, immutably replace the user's retained vehicle record, increment the bid count, update current-bid ownership, and block the following self-bid once the public status becomes `Reserve met`.
 - [x] Block repeat bids for `Reserve met` and `No reserve` without changing either session array or exposing the exact reserve price.
 - [x] Keep exactly one retained record per `(vehicleId, userId)` so `getUserBidForVehicle` can use a direct lookup while `getUserBidEntries` preserves one `My bids` row per vehicle and stable catalog order.
-- [x] Confirm `App`, `InventoryRoute`, `useBidSessionState`, and `MyBidsRoute` receive the replaced bid automatically; use a new generated ID and timestamp for each accepted raise.
+- [x] Confirm `App`, `InventoryRoute`, the former session-state adapter, and `MyBidsRoute` receive the replaced bid automatically; use a new generated ID and timestamp for each accepted raise.
 - [x] Add a reserve-unmet ownership state to the shared bid UI: `You hold the current bid` / `Reserve not met — you can raise your bid`, with active desktop and mobile `Raise your bid` launchers and the next minimum in CAD.
 - [x] For a prior record without current ownership, use neutral `Bid recorded` / `Reserve not met — you can place a higher bid` copy while the same raise action remains available; do not invent an outbid event. If the public state locks further bidding, keep the copy neutral instead of showing the current-owner treatment.
 - [x] Retain `You hold the current bid` / `No action needed` with no launcher for `Reserve met` and `No reserve`.
@@ -278,6 +279,30 @@ Phase 8 supersedes Phase 7's one-direct-bid lock and append-only client ledger w
 - [x] Rerun tests, typecheck, lint, build, diff checks, and 375/768/1440 browser QA without adding competing bidders, changing the `$500` increment, revealing reserve price, or expanding Buy Now/checkout scope.
 
 Exit: a reviewer can raise their own current bid while the reserve remains unmet, see the latest amount everywhere, and encounter an explicit lock once the reserve is met or absent, with no claim of realtime competition or durable auction finality.
+
+### Phase 9 — Redux auction session
+
+This is a behavior-preserving architecture phase. It centralizes the auction session before more shared features are added; it does not add authentication, backend persistence, competing bidders, realtime events, checkout, or new UI.
+
+- [x] Add `@reduxjs/toolkit` and `react-redux` with npm and update `package-lock.json`; do not add a second state library or RTK Query without backend scope.
+- [x] Add `src/app/store.ts` with a `createAppStore` factory so application startup and every test can create an isolated store. Initialize one `bidSession` slice with an injected-or-generated `userId`, catalog vehicles, and an empty retained-bids array.
+- [x] Create the production store once in `src/main.tsx` and mount the Redux `Provider` there. Move deterministic test identity from the current `<App userId>` prop to the store factory; a normal browser refresh should still create a new anonymous session.
+- [x] Keep `applyBid`, reserve evaluation, minimum-bid validation, ownership, and user-bid joins in the domain layer. Redux should coordinate state, not duplicate auction rules inside reducers or components.
+- [x] Add `src/features/bidding/bidSessionSlice.ts` with a synchronous `placeBid` thunk/command that reads the latest store snapshot, creates the bid request, calls `applyBid`, dispatches the accepted snapshot, and returns the existing `boolean` result expected by `BidDialog`.
+- [x] Inject `createBidId`, `now`, and `resolveReserveStatus` as store services so tests remain deterministic. Never call `crypto.randomUUID()` or `new Date()` from a reducer.
+- [x] Keep reducers deterministic and limited to committing accepted state. A rejected request must return `false`, dispatch no state change, and leave the existing session references untouched.
+- [x] Keep the current `Vehicle.auctionStart: Date` domain model during this migration. Configure Redux Toolkit's serializability middleware to explicitly accept `Date` values rather than disabling serializability checks, and document that a persistent/backend boundary would normalize dates.
+- [x] Add typed `useAppDispatch` and `useAppSelector` hooks in `src/app/hooks.ts`, plus slice selectors for the active user, vehicles, retained bids, one user bid by vehicle, and the current user's stable `My bids` entries/count.
+- [x] Connect Redux at `AppRoutes` instead of subscribing every presentational component. Preserve the existing props for `InventoryRoute`, `VehicleRoute`, `AuctionRail`, `BidDialog`, `VehicleCard`, and `MyBidsRoute` unless a prop becomes provably redundant.
+- [x] Replace and remove `useBidSessionState` only after all callers use the store. Remove its hook-specific ref, tests, comments, and any stale exports instead of leaving two session-state paths.
+- [x] Add focused store tests for isolated initialization, supplied/anonymous user identity, accepted and rejected commands, two same-tick raises, reserve-met and no-reserve locking, immutable retained-record replacement, deterministic IDs/timestamps, and unchanged state after rejection.
+- [x] Add selector tests for stable catalog order, one `My bids` row per vehicle, current ownership, and missing vehicle/user-bid results. Keep the existing pure domain tests as the source of truth for auction rules.
+- [x] Update app and journey tests with a reusable test-store setup. Confirm browse → inspect → bid → raise → `My bids`, invalid routes, focus handoff, and refresh-reset behavior remain unchanged.
+- [ ] Inspect the readable `bidSession/acceptedBidApplied` action and session state in Redux DevTools; the QA browser does not have the extension installed. Automated and browser checks confirm no non-serializable-value warnings, duplicate stores, or Strict Mode initialization bugs.
+- [x] Update `DESIGN.md`, `README.md`, and walkthrough notes after the migration so they explain why shared auction state moved to Redux while the domain layer stayed framework-independent.
+- [x] Run the full test suite, typecheck, OXLint, production build, and `git diff --check`; repeat the 375/768/1440 browser journey and verify there are no console errors or layout/interaction regressions.
+
+Exit: Redux Toolkit owns one isolated auction session, the existing domain functions remain the only source of bid rules, every current user flow behaves the same, and the old custom session hook has been completely removed.
 
 Treat the conditional stretch and optional motion as the first cuts if scope needs to be reduced; preserve the core bid feedback, responsive QA, and README.
 
@@ -299,6 +324,9 @@ Treat the conditional stretch and optional motion as the first cuts if scope nee
 - [x] Focus lifecycle, labels, semantic structure, image alt text, and key color contrast have been checked.
 - [ ] Native Tab traversal and OS/browser reduced-motion preference emulation have been checked.
 - [x] Phase 8 tests, type-checking, linting, and production build pass.
+- [x] Redux owns the active auction session without changing bid eligibility, visible copy, focus behavior, refresh reset, or responsive UI.
+- [x] Redux commands and selectors cover the current-user journey, and no stale `useBidSessionState` path remains.
+- [x] Phase 9 tests, type-checking, linting, production build, diff checks, and browser parity checks pass.
 - [x] The repository contains no secrets, generated junk, or abandoned UI attempts.
 - [ ] Phase 6 changes are committed and the working tree is clean; intentionally left for owner diff review.
 
@@ -331,7 +359,8 @@ Update this table at each phase boundary; record actual results rather than inte
 | 5 — Craft, responsiveness, accessibility | Codex | Manual follow-up | Softened surface hierarchy, cached-gallery loading, route-heading focus, stronger contrast, explicit content groups, corrected mobile launcher clearance, centralized status rules, compressed inventory hero, photo-first cards, compact auction overlays, independent filter chips, and a scroll-aware mobile bid action | 91 tests, typecheck, OXLint, build, diff check, and 375/641/768/1440 Browser QA; visible focus, semantics, labels, alt text, contrast, dialog behavior, fallback states, image loading, controls, and overflow checked; native Tab traversal and OS reduced-motion emulation remain manual    | `62081a9`                               |
 | 6 — Verification and submission package  | Codex | Complete         | Archived the original brief verbatim, replaced the root README with reviewer setup and decisions, added walkthrough notes, updated source paths, and strengthened transient mobile-action contrast                                                                                                                         | Clean archive: `npm ci` with 0 vulnerabilities; 93 tests in 14 files, typecheck, OXLint, and build pass; dev and preview root/deep-route startup plus 375/768/1440 Browser journey, scheduled state, refresh reset, console, semantics, contrast, documentation-link, secret, and junk audits | Uncommitted for owner review            |
 | 7 — My bids and bid ownership            | Codex | Complete         | Session-scoped anonymous `userId`, immutable bid records, owner-bearing current-bid snapshots, a stable vehicle join for `/bids`, identity-based ownership, one direct bid per user/vehicle, shared image fallback behavior, and an honest refresh reset | 111 tests in 15 files, typecheck, OXLint, build, diff check, and user-ID/unknown-owner/immutable-record/repeated-bid/ownership/refresh coverage; prior browser journeys verified focus handoff and 375/768/1440 layouts without horizontal overflow | Uncommitted for owner review            |
-| 8 — Reserve-aware self-raising           | Codex | Complete         | Shared `place`/`raise`/`locked` domain eligibility, one immutably replaced user-bid record per vehicle, responsive raise launchers, honest owner/neutral lock states, and one current `My bids` row per vehicle | 125 tests in 15 files, typecheck, OXLint, build, and diff check; live two-bid reserve transition, exact focus handoffs, console, and no-overflow QA passed at 375/768/1440 | Uncommitted for owner review            |
+| 8 — Reserve-aware self-raising           | Codex | Complete         | Shared `place`/`raise`/`locked` domain eligibility, one immutably replaced user-bid record per vehicle, responsive raise launchers, honest owner/neutral lock states, and one current `My bids` row per vehicle | 125 tests in 15 files, typecheck, OXLint, build, and diff check; live two-bid reserve transition, exact focus handoffs, console, and no-overflow QA passed at 375/768/1440 | `2a8dc61`                               |
+| 9 — Redux auction session                | Codex | Manual follow-up | One isolated Redux Toolkit store, deterministic synchronous bid command, memoized selectors, typed hooks, route-boundary integration, and removal of the custom session hook | 130 tests in 15 files, typecheck, OXLint, build, diff check, and 375/768/1440 browser parity with no console/serializability warnings; Redux DevTools visual inspection remains manual because the QA browser has no extension | Uncommitted for owner review |
 
 ## Walkthrough Story
 
@@ -339,7 +368,7 @@ The implementation should support this concise narrative:
 
 - **Product decision:** condition and title risk are promoted because wholesale buyers need confidence before price action.
 - **Scope decision:** one excellent buyer journey was prioritized over accounts, backend simulation, or broad marketplace features.
-- **Technical decision:** pure domain transitions, shared reserve-aware eligibility, and a thin route-level session hook keep bid behavior testable without production infrastructure.
+- **Technical decision:** Redux Toolkit makes shared auction-session ownership explicit, while a synchronous command delegates every bid rule to the pure domain transition and reducers only commit accepted results.
 - **Data decision:** stale start dates and missing auction ends were handled transparently instead of inventing false countdowns.
 - **Workflow decision:** AI accelerated implementation and review, while scope, tradeoffs, verification, and final ownership remained explicit.
 
