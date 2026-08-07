@@ -1,10 +1,12 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { Router } from 'wouter'
 import { memoryLocation } from 'wouter/memory-location'
 
-import type { TitleStatus } from '../../domain/types'
+import { createAppStore } from '../../app/store'
+import type { Bid, TitleStatus, Vehicle } from '../../domain/types'
 import { makeBid } from '../../test/bidFactory'
+import { renderWithStore } from '../../test/renderWithStore'
 import { makeVehicle } from '../../test/vehicleFactory'
 import { VehicleRoute } from './VehicleRoute'
 
@@ -12,21 +14,21 @@ const referenceTime = new Date(2026, 7, 4, 12)
 const userId = 'user-1'
 
 function renderVehicle(
-  vehicle = makeVehicle(),
-  userBid?: ReturnType<typeof makeBid>,
+  vehicle: Vehicle = makeVehicle(),
+  userBid?: Bid,
 ) {
   const { hook } = memoryLocation({ path: `/vehicles/${vehicle.id}`, static: true })
+  const store = createAppStore({
+    userId,
+    initialVehicles: [vehicle],
+    initialBids: userBid ? [userBid] : [],
+  })
 
-  return render(
+  return renderWithStore(
     <Router hook={hook}>
-      <VehicleRoute
-        vehicle={vehicle}
-        now={referenceTime}
-        userBid={userBid}
-        userId={userId}
-        onPlaceBid={() => true}
-      />
+      <VehicleRoute vehicle={vehicle} now={referenceTime} />
     </Router>,
+    store,
   )
 }
 

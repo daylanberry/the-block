@@ -1,26 +1,37 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { Router } from 'wouter'
 import { memoryLocation } from 'wouter/memory-location'
 
-import {
-  getUserBidEntries,
-  type UserBidEntry,
-} from '../../../domain/bidding'
+import { createAppStore } from '../../../app/store'
+import type { Bid, Vehicle } from '../../../domain/types'
 import { makeBid } from '../../../test/bidFactory'
+import { renderWithStore } from '../../../test/renderWithStore'
 import { makeVehicle } from '../../../test/vehicleFactory'
 import { MyBidsRoute } from './MyBidsRoute'
 
 const referenceTime = new Date(2026, 7, 4, 12)
 const userId = 'user-1'
 
-function renderMyBids(entries: readonly UserBidEntry[] = []) {
+function renderMyBids({
+  vehicles = [],
+  bids = [],
+}: {
+  vehicles?: readonly Vehicle[]
+  bids?: readonly Bid[]
+} = {}) {
   const { hook } = memoryLocation({ path: '/bids', static: true })
+  const store = createAppStore({
+    userId,
+    initialVehicles: vehicles,
+    initialBids: bids,
+  })
 
-  return render(
+  return renderWithStore(
     <Router hook={hook}>
-      <MyBidsRoute entries={entries} now={referenceTime} />
+      <MyBidsRoute now={referenceTime} />
     </Router>,
+    store,
   )
 }
 
@@ -85,13 +96,14 @@ describe('My bids route', () => {
       userId,
       amount: 34_000,
     })
-    const entries = getUserBidEntries(
-      [firstVehicle, makeVehicle({ id: 'no-user-bid' }), secondVehicle],
-      [secondBid, firstBid],
-      userId,
-    )
-
-    renderMyBids(entries)
+    renderMyBids({
+      vehicles: [
+        firstVehicle,
+        makeVehicle({ id: 'no-user-bid' }),
+        secondVehicle,
+      ],
+      bids: [secondBid, firstBid],
+    })
 
     const list = screen.getByRole('list', {
       name: 'Vehicles with your bids',
@@ -144,13 +156,10 @@ describe('My bids route', () => {
       id: 'bid-with-failed-image',
       bid: { currentBid: { amount: 30_000, userId } },
     })
-    const [entry] = getUserBidEntries(
-      [vehicle],
-      [makeBid({ vehicleId: vehicle.id, userId })],
-      userId,
-    )
-
-    renderMyBids([entry])
+    renderMyBids({
+      vehicles: [vehicle],
+      bids: [makeBid({ vehicleId: vehicle.id, userId })],
+    })
 
     fireEvent.error(
       screen.getByRole('img', {
@@ -169,5 +178,4 @@ describe('My bids route', () => {
       }),
     ).toHaveAttribute('href', '/vehicles/bid-with-failed-image')
   })
-
 })

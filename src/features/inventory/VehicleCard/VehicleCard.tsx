@@ -1,5 +1,6 @@
 import { Link } from 'wouter'
 
+import { useAppSelector } from '../../../app/hooks'
 import { VehiclePhoto } from '../../../components/VehiclePhoto/VehiclePhoto'
 import { getAuctionStatus } from '../../../domain/auction'
 import {
@@ -12,22 +13,23 @@ import {
   formatOdometer,
 } from '../../../domain/formatters'
 import { getReserveTone, getTitleTone } from '../../../domain/statusTone'
-import type { Bid, Vehicle } from '../../../domain/types'
+import type { Vehicle } from '../../../domain/types'
+import {
+  selectUserBidForVehicle,
+  selectUserId,
+} from '../../bidding/bidSessionSlice'
 import './VehicleCard.css'
 
 interface VehicleCardProps {
   vehicle: Vehicle
   now: Date
-  userBid?: Bid
-  userId: string
 }
 
-export function VehicleCard({
-  vehicle,
-  now,
-  userBid,
-  userId,
-}: VehicleCardProps) {
+export function VehicleCard({ vehicle, now }: VehicleCardProps) {
+  const userId = useAppSelector(selectUserId)
+  const userBid = useAppSelector((state) =>
+    selectUserBidForVehicle(state, vehicle.id),
+  )
   const titleId = `vehicle-${vehicle.id}-title`
   const lotId = `vehicle-${vehicle.id}-lot`
   const bidPositionId = `vehicle-${vehicle.id}-bid-position`

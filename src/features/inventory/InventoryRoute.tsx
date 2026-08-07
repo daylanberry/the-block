@@ -1,31 +1,26 @@
 import { useMemo, useRef, useState } from 'react'
 
+import { useAppSelector } from '../../app/hooks'
 import { getAuctionStatus } from '../../domain/auction'
-import { getUserBidForVehicle } from '../../domain/bidding'
 import {
   BODY_STYLE_FILTERS,
   filterVehicles,
   sortOpenVehiclesFirst,
 } from '../../domain/inventory'
-import type { Bid, BodyStyleFilter, Vehicle } from '../../domain/types'
-import { vehicles } from '../../domain/vehicles'
+import type { BodyStyleFilter } from '../../domain/types'
+import { selectVehicles } from '../bidding/bidSessionSlice'
 import { useReferenceTime } from '../../hooks/useReferenceTime'
 import { VehicleCard } from './VehicleCard/VehicleCard'
 import './inventory.css'
 
 interface InventoryRouteProps {
-  bids: readonly Bid[]
-  inventory?: readonly Vehicle[]
   now?: Date
-  userId: string
 }
 
 export function InventoryRoute({
-  bids,
-  inventory = vehicles,
   now: suppliedNow,
-  userId,
 }: InventoryRouteProps) {
+  const inventory = useAppSelector(selectVehicles)
   const [query, setQuery] = useState('')
   const [bodyStyle, setBodyStyle] = useState<BodyStyleFilter>('All')
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -146,8 +141,6 @@ export function InventoryRoute({
               <VehicleCard
                 vehicle={vehicle}
                 now={referenceTime}
-                userBid={getUserBidForVehicle(bids, vehicle.id, userId)}
-                userId={userId}
               />
             </li>
           ))}

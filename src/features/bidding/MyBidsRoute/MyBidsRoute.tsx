@@ -1,5 +1,6 @@
 import { Link } from 'wouter'
 
+import { useAppSelector } from '../../../app/hooks'
 import { VehiclePhoto } from '../../../components/VehiclePhoto/VehiclePhoto'
 import { getAuctionStatus } from '../../../domain/auction'
 import type { UserBidEntry } from '../../../domain/bidding'
@@ -9,10 +10,10 @@ import {
 } from '../../../domain/formatters'
 import { getReserveTone } from '../../../domain/statusTone'
 import { useReferenceTime } from '../../../hooks/useReferenceTime'
+import { selectUserBidEntries } from '../bidSessionSlice'
 import './MyBidsRoute.css'
 
 interface MyBidsRouteProps {
-  entries: readonly UserBidEntry[]
   now?: Date
 }
 
@@ -120,9 +121,9 @@ function SessionBidCard({
 }
 
 export function MyBidsRoute({
-  entries,
   now: suppliedNow,
 }: MyBidsRouteProps) {
+  const entries = useAppSelector(selectUserBidEntries)
   const referenceTime = useReferenceTime(suppliedNow)
   const vehicleLabel = entries.length === 1 ? 'vehicle' : 'vehicles'
 

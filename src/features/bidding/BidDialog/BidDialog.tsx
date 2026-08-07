@@ -9,30 +9,33 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { getMinimumBid, validateBidAmount } from "../../../domain/auction";
 import {
   getUserBidAction,
   isCurrentUserBid,
 } from "../../../domain/bidding";
 import { formatCurrency } from "../../../domain/formatters";
-import type { Bid, Vehicle } from "../../../domain/types";
+import type { Vehicle } from "../../../domain/types";
+import {
+  placeBid,
+  selectUserBidForVehicle,
+  selectUserId,
+} from "../bidSessionSlice";
 import "./BidDialog.css";
 
 interface BidDialogProps {
   vehicle: Vehicle;
-  userBid?: Bid;
-  userId: string;
-  onPlaceBid: (amount: number) => boolean;
 }
 
 type BidDialogStep = "entry" | "review" | "success";
 
-export function BidDialog({
-  vehicle,
-  userBid,
-  userId,
-  onPlaceBid,
-}: BidDialogProps) {
+export function BidDialog({ vehicle }: BidDialogProps) {
+  const dispatch = useAppDispatch();
+  const userId = useAppSelector(selectUserId);
+  const userBid = useAppSelector((state) =>
+    selectUserBidForVehicle(state, vehicle.id),
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [isMobileLauncherScrolling, setIsMobileLauncherScrolling] =
     useState(false);
@@ -223,7 +226,9 @@ export function BidDialog({
       return;
     }
 
-    const wasAccepted = onPlaceBid(validation.amount);
+    const wasAccepted = dispatch(
+      placeBid({ vehicleId: vehicle.id, amount: validation.amount }),
+    );
 
     if (!wasAccepted) {
       setRawAmount(String(validation.amount));

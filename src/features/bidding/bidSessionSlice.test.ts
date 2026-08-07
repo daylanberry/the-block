@@ -10,6 +10,7 @@ import {
   selectUserBidForVehicle,
   selectUserBidVehicleCount,
   selectUserId,
+  selectVehicleById,
   selectVehicles,
 } from './bidSessionSlice'
 
@@ -232,6 +233,10 @@ describe('bid session selectors', () => {
       true,
     ])
     expect(selectUserBidVehicleCount(state)).toBe(2)
+    expect(selectVehicleById(state, firstVehicle.id)).toBe(
+      selectVehicles(state)[0],
+    )
+    expect(selectVehicleById(state, 'missing-vehicle')).toBeUndefined()
     expect(selectUserBidForVehicle(state, firstVehicle.id)).toBe(entries[0].bid)
     expect(selectUserBidForVehicle(state, skippedVehicle.id)).toBeUndefined()
     expect(selectUserBidForVehicle(state, 'missing-vehicle')).toBeUndefined()

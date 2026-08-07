@@ -13,6 +13,7 @@ import {
   type BidSessionSnapshot,
   type ReserveStatusResolver,
 } from '../../domain/bidding'
+import { findVehicleById } from '../../domain/inventory'
 import type { Bid, Vehicle } from '../../domain/types'
 
 export interface BidSessionState {
@@ -32,6 +33,7 @@ export interface BidSessionRootState {
 }
 
 interface CreateBidSessionStateOptions {
+  bids?: readonly Bid[]
   userId: string
   vehicles: readonly Vehicle[]
 }
@@ -42,13 +44,14 @@ export interface PlaceBidInput {
 }
 
 export function createBidSessionState({
+  bids = [],
   userId,
   vehicles,
 }: CreateBidSessionStateOptions): BidSessionState {
   return {
     userId,
     vehicles: [...vehicles],
-    bids: [],
+    bids: [...bids],
   }
 }
 
@@ -111,7 +114,7 @@ export function placeBid({
   }
 }
 
-export const selectBidSession = (state: BidSessionRootState) =>
+const selectBidSession = (state: BidSessionRootState) =>
   state.bidSession
 export const selectUserId = (state: BidSessionRootState) =>
   selectBidSession(state).userId
@@ -119,6 +122,13 @@ export const selectVehicles = (state: BidSessionRootState) =>
   selectBidSession(state).vehicles
 export const selectBids = (state: BidSessionRootState) =>
   selectBidSession(state).bids
+
+export function selectVehicleById(
+  state: BidSessionRootState,
+  vehicleId: string,
+) {
+  return findVehicleById(selectVehicles(state), vehicleId)
+}
 
 export function selectUserBidForVehicle(
   state: BidSessionRootState,

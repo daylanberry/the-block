@@ -1,3 +1,4 @@
+import { useAppSelector } from '../../../app/hooks'
 import { getAuctionStatus, getMinimumBid } from '../../../domain/auction'
 import {
   formatAuctionStart,
@@ -5,25 +6,24 @@ import {
 } from '../../../domain/formatters'
 import { getUserBidAction } from '../../../domain/bidding'
 import { getReserveTone } from '../../../domain/statusTone'
-import type { Bid, Vehicle } from '../../../domain/types'
+import type { Vehicle } from '../../../domain/types'
 import { BidDialog } from '../../bidding/BidDialog/BidDialog'
+import {
+  selectUserBidForVehicle,
+  selectUserId,
+} from '../../bidding/bidSessionSlice'
 import './AuctionRail.css'
 
 interface AuctionRailProps {
   vehicle: Vehicle
   now: Date
-  userBid?: Bid
-  userId: string
-  onPlaceBid: (amount: number) => boolean
 }
 
-export function AuctionRail({
-  vehicle,
-  now,
-  userBid,
-  userId,
-  onPlaceBid,
-}: AuctionRailProps) {
+export function AuctionRail({ vehicle, now }: AuctionRailProps) {
+  const userId = useAppSelector(selectUserId)
+  const userBid = useAppSelector((state) =>
+    selectUserBidForVehicle(state, vehicle.id),
+  )
   const auctionStatus = getAuctionStatus(vehicle.auctionStart, now)
   const hasCurrentBid = vehicle.bid.currentBid !== null
   const userBidAction = getUserBidAction(vehicle, userId, userBid)
@@ -104,13 +104,7 @@ export function AuctionRail({
           This lot remains read-only until its scheduled auction opens.
         </p>
       ) : (
-        <BidDialog
-          key={vehicle.id}
-          vehicle={vehicle}
-          userBid={userBid}
-          userId={userId}
-          onPlaceBid={onPlaceBid}
-        />
+        <BidDialog key={vehicle.id} vehicle={vehicle} />
       )}
     </aside>
   )

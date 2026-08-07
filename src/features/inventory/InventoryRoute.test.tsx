@@ -1,8 +1,11 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Router } from 'wouter'
 import { memoryLocation } from 'wouter/memory-location'
 
+import { createAppStore } from '../../app/store'
+import type { Vehicle } from '../../domain/types'
+import { renderWithStore } from '../../test/renderWithStore'
 import { makeVehicle } from '../../test/vehicleFactory'
 import { InventoryRoute } from './InventoryRoute'
 
@@ -13,18 +16,18 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-function renderInventory(inventory?: Parameters<typeof InventoryRoute>[0]['inventory']) {
+function renderInventory(inventory?: readonly Vehicle[]) {
   const { hook } = memoryLocation({ path: '/', static: true })
+  const store = createAppStore({
+    userId,
+    ...(inventory ? { initialVehicles: inventory } : {}),
+  })
 
-  return render(
+  return renderWithStore(
     <Router hook={hook}>
-      <InventoryRoute
-        bids={[]}
-        inventory={inventory}
-        now={referenceTime}
-        userId={userId}
-      />
+      <InventoryRoute now={referenceTime} />
     </Router>,
+    store,
   )
 }
 
@@ -111,11 +114,13 @@ describe('inventory route', () => {
     const vehicle = makeVehicle({
       auctionStart: new Date(referenceTime.getTime() + 30_000),
     })
+    const store = createAppStore({ userId, initialVehicles: [vehicle] })
 
-    render(
+    renderWithStore(
       <Router hook={hook}>
-        <InventoryRoute bids={[]} inventory={[vehicle]} userId={userId} />
+        <InventoryRoute />
       </Router>,
+      store,
     )
 
     expect(screen.getByText('Auction starts')).toBeInTheDocument()

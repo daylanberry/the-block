@@ -79,7 +79,7 @@ The primary journey stays intentionally narrow:
 
 ### Keep bid rules outside React
 
-Formatting, catalog normalization, auction state, reserve state, search/filtering, bid validation, and repeat-bid eligibility live in the domain layer. Bid acceptance is a pure immutable transition, while a small route-level hook owns session state. This keeps the behavior testable and provides a clean starting point for a reducer or server-backed store without requiring global state for this prototype.
+Formatting, catalog normalization, auction state, reserve state, search/filtering, bid validation, and repeat-bid eligibility live in the domain layer. Bid acceptance remains a pure immutable transition. Redux Toolkit owns the shared session snapshot, and a synchronous command reads the latest state, calls that transition, and commits only accepted results. Focused components select only the session values they use, while the bid dialog dispatches that command directly instead of receiving a callback through the route tree. This keeps the auction rules testable without coupling them to React or Redux reducers.
 
 The application creates one anonymous `userId` for the current browser session and retains one latest bid record per user and vehicle. A first bid creates that immutable record; an accepted raise replaces it with a new record containing the new ID, amount, and ISO timestamp. An incoming ID matching a retained record remains invalid, while production-grade lifetime idempotency belongs on the server. A prior bidder may submit another minimum-valid bid only while the vehicle's current public reserve status is `Reserve not met`; `Reserve met` and `No reserve` lock further self-bidding. `You hold the current bid` appears only when the current auction bid's owner ID matches the active user ID—equal amounts alone never imply ownership. Supplied catalog bids have an unknown owner.
 
@@ -93,7 +93,7 @@ The buyer sees only `No reserve`, `Reserve not met`, or `Reserve met`. The exact
 
 ### Normalize synthetic auction dates honestly
 
-The supplied seven-day schedule is shifted deterministically relative to the current day while preserving its spacing. The UI says `Open` or `Auction starts`; it does not invent an end time, timezone, countdown, or urgency claim absent from the data.
+The supplied seven-day schedule is shifted deterministically relative to the current day while preserving its spacing. The UI says `Open` or `Auction starts`; it does not invent an end time, timezone, countdown, or urgency claim absent from the data. The store's serializability check explicitly accepts the existing normalized `Date` values; a persistent API boundary would exchange a serialized date representation instead.
 
 ### Use one focused bid dialog
 
@@ -122,19 +122,19 @@ Null and empty image entries are discarded during normalization. The gallery sep
 
 ## Stack and structure
 
-- React 19, TypeScript, Vite, and Wouter.
+- React 19, TypeScript, Vite, Wouter, Redux Toolkit, and React Redux.
 - Custom CSS with a small token system and locally bundled Barlow Condensed and IBM Plex Sans fonts.
 - Vitest, React Testing Library, JSDOM, and OXLint.
 - Build-time JSON import with no API or database layer.
 
 ```text
 src/
-  app/                  routing and application composition
+  app/                  routing, store configuration, and typed Redux hooks
   components/           shared application shell
   domain/               normalization and pure business rules
   features/inventory/   search, filters, and vehicle cards
   features/vehicle/     detail record, gallery, and auction rail
-  features/bidding/     bid dialog, current-bid view, and session-state adapter
+  features/bidding/     bid dialog, current-bid view, and Redux session slice
   styles/               global tokens and application styles
   test/                 shared test setup and factories
 ```
@@ -150,9 +150,9 @@ npm run lint
 npm run build
 ```
 
-The final automated run passes 125 tests across 15 files, TypeScript, OXLint, and the production build.
+The final automated run passes 130 tests across 15 files, TypeScript, OXLint, and the production build.
 
-The automated suite covers catalog validation and normalization, search/filter behavior, auction and reserve rules, immutable latest-bid replacement, user-ID ownership, unknown catalog owners, reserve-aware repeat eligibility, stable My-bids joins, routing, gallery loading/failure behavior, responsive launchers, dialog validation/review/success, focus management, refresh reset, and visible session updates.
+The automated suite covers catalog validation and normalization, search/filter behavior, auction and reserve rules, immutable latest-bid replacement, user-ID ownership, unknown catalog owners, reserve-aware repeat eligibility, Redux commands and selectors, stable My-bids joins, routing, gallery loading/failure behavior, responsive launchers, dialog validation/review/success, focus management, refresh reset, and visible session updates.
 
 The final manual pass exercises search, combined filters, empty results, detail navigation, gallery controls, invalid and valid bids, an eligible raise, the reserve-clearing lock, current-bid ownership, the empty and populated `My bids` views, canonical return navigation, refresh behavior, keyboard focus, and responsive layouts at 375px, 768px, and 1440px. The browser-loaded styles were also checked for the global `prefers-reduced-motion` override. A clean-directory `npm ci` and startup check confirms the documented setup.
 

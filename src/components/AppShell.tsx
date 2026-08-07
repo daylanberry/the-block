@@ -1,13 +1,16 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 
+import { useAppSelector } from "../app/hooks";
+import { selectUserBidVehicleCount } from "../features/bidding/bidSessionSlice";
+
 interface AppShellProps {
   children: ReactNode;
-  userBidVehicleCount: number;
 }
 
-export function AppShell({ children, userBidVehicleCount }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const [location] = useLocation();
+  const userBidVehicleCount = useAppSelector(selectUserBidVehicleCount);
   const mainRef = useRef<HTMLElement>(null);
   const previousLocationRef = useRef(location);
   const isInventoryActive = location === "/";

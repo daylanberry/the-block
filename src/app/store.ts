@@ -6,7 +6,7 @@ import {
   type UnknownAction,
 } from '@reduxjs/toolkit'
 
-import type { Vehicle } from '../domain/types'
+import type { Bid, Vehicle } from '../domain/types'
 import {
   getVehicleReserveStatus,
   vehicles as catalogVehicles,
@@ -21,6 +21,7 @@ export type AppServices = BidSessionServices
 
 export interface CreateAppStoreOptions {
   userId?: string
+  initialBids?: readonly Bid[]
   initialVehicles?: readonly Vehicle[]
   services?: Partial<AppServices>
 }
@@ -38,12 +39,17 @@ function createPrototypeBidId() {
   return crypto.randomUUID()
 }
 
-export function createAppStore(options: CreateAppStoreOptions = {}) {
+export function createAppStore({
+  userId = createAnonymousUserId(),
+  initialBids = [],
+  initialVehicles = catalogVehicles,
+  services: serviceOverrides = {},
+}: CreateAppStoreOptions = {}) {
   const services: AppServices = {
-    createBidId: options.services?.createBidId ?? createPrototypeBidId,
-    now: options.services?.now ?? (() => new Date()),
+    createBidId: serviceOverrides.createBidId ?? createPrototypeBidId,
+    now: serviceOverrides.now ?? (() => new Date()),
     resolveReserveStatus:
-      options.services?.resolveReserveStatus ?? getVehicleReserveStatus,
+      serviceOverrides.resolveReserveStatus ?? getVehicleReserveStatus,
   }
 
   return configureStore({
@@ -52,8 +58,9 @@ export function createAppStore(options: CreateAppStoreOptions = {}) {
     },
     preloadedState: {
       bidSession: createBidSessionState({
-        userId: options.userId ?? createAnonymousUserId(),
-        vehicles: options.initialVehicles ?? catalogVehicles,
+        bids: initialBids,
+        userId,
+        vehicles: initialVehicles,
       }),
     },
     middleware: (getDefaultMiddleware) =>
