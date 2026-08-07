@@ -134,10 +134,6 @@ export function MyBidsRoute({
         <h1 id="my-bids-title" tabIndex={-1}>
           My bids
         </h1>
-        <p>
-          Review every vehicle you have bid on and return to its auction record
-          from one focused list.
-        </p>
       </header>
 
       <aside className="my-bids-summary" aria-label="Session bid summary">

@@ -5,8 +5,8 @@
 Before changing the project, read:
 
 1. `docs/CHALLENGE.md`, `SUBMISSION.md`, and `WALKTHROUGH.md` for the original challenge requirements.
-2. `PLAN.md` for scope, phase ownership, acceptance criteria, and the execution log.
-3. `DESIGN.md` for the product thesis, interaction contract, and visual system.
+2. `docs/PLAN.md` for scope, phase ownership, acceptance criteria, and the execution log.
+3. `docs/DESIGN.md` for the product thesis, interaction contract, and visual system.
 4. `README.md` for the reviewer-facing setup, final decisions, and documented assumptions.
 
 If these documents conflict, preserve the challenge requirements first, then ask the project owner before changing product scope.
@@ -42,7 +42,7 @@ After installing dependencies, use these commands:
 - Preserve responsive behavior, keyboard access, visible focus, semantic HTML, and reduced-motion support.
 - After editing, remove abandoned components, styles, copy, and dependencies from previous attempts.
 - Run the checks appropriate to the phase and report both what passed and what was not run.
-- Update the relevant checklist and execution-log row in `PLAN.md` at the end of a completed phase.
+- Update the relevant checklist and execution-log row in `docs/PLAN.md` at the end of a completed phase.
 - Do not push, open a pull request, or begin another phase without direction from the project owner.
 
 ## Collaboration

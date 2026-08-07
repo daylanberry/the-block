@@ -168,11 +168,7 @@ function readNullablePositiveInteger(
   return readNumber(record, key, path, { integer: true, minimum: 1 });
 }
 
-function readStringArray(
-  record: UnknownRecord,
-  key: string,
-  path: string,
-) {
+function readStringArray(record: UnknownRecord, key: string, path: string) {
   const value = record[key];
 
   if (!Array.isArray(value)) {
@@ -357,10 +353,7 @@ function parseRawVehicle(value: unknown, index: number): RawVehicle {
   return rawVehicle;
 }
 
-function assertUnique(
-  vehicles: readonly RawVehicle[],
-  key: "id" | "vin",
-) {
+function assertUnique(vehicles: readonly RawVehicle[], key: "id" | "vin") {
   const values = new Set<string>();
 
   vehicles.forEach((vehicle, index) => {
@@ -395,7 +388,7 @@ export function normalizeAuctionSchedule(
     ),
   );
 
-  // This creates a timestamp for the day after demoDate
+  // This creates a timestamp for the day after demoDate (which is usually today)
   const targetLatestDay = Date.UTC(
     demoDate.getFullYear(),
     demoDate.getMonth(),

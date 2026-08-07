@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'wouter'
 
 import { useAppSelector } from '../../../app/hooks'
@@ -25,7 +26,10 @@ interface VehicleCardProps {
   now: Date
 }
 
-export function VehicleCard({ vehicle, now }: VehicleCardProps) {
+export const VehicleCard = memo(function VehicleCard({
+  vehicle,
+  now,
+}: VehicleCardProps) {
   const userId = useAppSelector(selectUserId)
   const userBid = useAppSelector((state) =>
     selectUserBidForVehicle(state, vehicle.id),
@@ -157,4 +161,4 @@ export function VehicleCard({ vehicle, now }: VehicleCardProps) {
       </Link>
     </article>
   )
-}
+})

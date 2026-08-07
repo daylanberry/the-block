@@ -228,4 +228,4 @@ Use lot `B-0004`, the 2025 Subaru Outback, for the primary walkthrough. Its acti
 
 ## Design Review Standard
 
-A phase is not visually complete because its happy path has styling. Review it against this document, the required states above, and the acceptance checklist in `PLAN.md`. Any deviation should be deliberate, recorded, and easier for the buyer to understand.
+A phase is not visually complete because its happy path has styling. Review it against this document, the required states above, and the acceptance checklist in `docs/PLAN.md`. Any deviation should be deliberate, recorded, and easier for the buyer to understand.

@@ -539,7 +539,7 @@
   left: 0;
   width: 5px;
   background: var(--color-positive);
-  content: '';
+  content: "";
 }
 
 .bid-dialog__success-mark {

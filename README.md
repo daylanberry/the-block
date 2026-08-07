@@ -6,6 +6,8 @@
 
 A condition-first wholesale vehicle auction prototype built with React. Buyers can search the supplied 200-vehicle catalog, assess vehicle and title risk, inspect a dedicated detail record, and complete a guarded bid flow on desktop or mobile.
 
+**Live demo:** [the-block-self.vercel.app](https://the-block-self.vercel.app)
+
 The supplied requirements are preserved verbatim in [the original challenge brief](docs/CHALLENGE.md).
 
 ## Run locally
@@ -51,6 +53,10 @@ Vite prints the local preview URL in the terminal.
 | `npm run lint` | Run OXLint |
 | `npm run build` | Type-check and create the production build |
 | `npm run preview` | Serve the production build locally |
+
+## Time spent
+
+Approximately six hours of focused implementation, followed by additional intermittent review, testing, and documentation across the challenge window.
 
 ## What I built
 
@@ -158,7 +164,7 @@ The final manual pass exercises search, combined filters, empty results, detail 
 
 ## AI-assisted workflow
 
-AI tools were encouraged by the challenge and used deliberately. Codex and Claude worked sequentially from shared [`AGENTS.md`](AGENTS.md), [`PLAN.md`](PLAN.md), and [`DESIGN.md`](DESIGN.md) contracts rather than maintaining separate interpretations of the product.
+AI tools were encouraged by the challenge and used deliberately. Codex and Claude worked sequentially from shared [`AGENTS.md`](AGENTS.md), [`PLAN.md`](docs/PLAN.md), and [`DESIGN.md`](docs/DESIGN.md) contracts rather than maintaining separate interpretations of the product.
 
 They assisted with bounded implementation phases, test creation, UX and code-review passes, and browser verification. I retained ownership by setting scope, reviewing diffs before commits, challenging architectural and interaction choices, asking for explanations of unfamiliar code, and deciding which recommendations to keep or reject.
 

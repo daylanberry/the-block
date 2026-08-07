@@ -11,10 +11,7 @@ import { createPortal } from "react-dom";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { getMinimumBid, validateBidAmount } from "../../../domain/auction";
-import {
-  getUserBidAction,
-  isCurrentUserBid,
-} from "../../../domain/bidding";
+import { getUserBidAction, isCurrentUserBid } from "../../../domain/bidding";
 import { formatCurrency } from "../../../domain/formatters";
 import type { Vehicle } from "../../../domain/types";
 import {
@@ -61,8 +58,7 @@ export function BidDialog({ vehicle }: BidDialogProps) {
     startingBid: vehicle.startingBid,
     currentBid: vehicle.bid.currentBid?.amount ?? null,
   });
-  const displayedBid =
-    vehicle.bid.currentBid?.amount ?? vehicle.startingBid;
+  const displayedBid = vehicle.bid.currentBid?.amount ?? vehicle.startingBid;
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
   const displayedBidLabel =
     vehicle.bid.currentBid === null ? "Starting bid" : "Current bid";
@@ -251,6 +247,8 @@ export function BidDialog({ vehicle }: BidDialogProps) {
     </>
   );
 
+  // createPortal changes where in the DOM is gets mounted instead of the component's parent, so the mobile button always sticks to
+  // the screen otherwise if the parent introduces transform, filter, backdrop-filter it will be fixed to the parent
   const modalLayer =
     typeof document === "undefined"
       ? null
